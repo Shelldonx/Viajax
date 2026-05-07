@@ -3,9 +3,9 @@ import { BookOpen, Zap, Shield, TrendingUp, ArrowRight, Sparkles } from "lucide-
 
 export default function Home() {
   const stats = [
-    { label: "Taxa de comissão", value: "3%", detail: "A mais baixa do mercado" },
-    { label: "Pagamento em", value: "USDC", detail: "Na Solana Mainnet" },
-    { label: "AI integrada", value: "GPT-4o", detail: "Cria eBooks em minutos" },
+    { label: "Platform Fee", value: "3%", detail: "Lowest in the market" },
+    { label: "Payouts in", value: "USDC", detail: "On Solana Mainnet" },
+    { label: "AI-powered", value: "GPT-4o", detail: "Create products in minutes" },
   ];
 
   return (
@@ -20,29 +20,29 @@ export default function Home() {
               Powered by Solana Mainnet
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl">
-              Vende os teus eBooks.
+              Sell your digital products.
               <br />
               <span className="bg-gradient-to-r from-teal-400 to-teal-200 bg-clip-text text-transparent">
-                Recebe em USDC.
+                Get paid in USDC.
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-lg text-gray-400">
-              Marketplace open source para creators. Taxa de apenas 3% — a mais baixa do mercado.
-              Cria eBooks com AI, aceita cartão e crypto, recebe em USDC automaticamente.
+              The open-source marketplace for low-ticket digital products. Only 3% fee — the lowest in the market.
+              Create with AI, accept card & crypto, get paid in USDC automatically.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href="/marketplace"
                 className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-teal-500/25 transition-all hover:bg-teal-600 hover:shadow-xl hover:shadow-teal-500/30"
               >
-                Explorar Marketplace
+                Explore Marketplace
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/dashboard/products/new"
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-700 px-8 py-3.5 text-sm font-semibold text-gray-300 transition-all hover:border-teal-500 hover:text-white"
               >
-                Começar a Vender
+                Start Selling
               </Link>
             </div>
           </div>
@@ -65,15 +65,15 @@ export default function Home() {
       {/* Features */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-white">Porquê o Viajax?</h2>
-          <p className="mt-3 text-gray-400">Tudo o que precisas para vender conteúdo digital, sem complicações.</p>
+          <h2 className="text-3xl font-bold text-white">Why Viajax?</h2>
+          <p className="mt-3 text-gray-400">Everything you need to sell digital products, without the hassle.</p>
         </div>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: Shield, title: "Checkout Simples", desc: "Cartão de crédito sem menção a crypto. O comprador nunca vê blockchain." },
-            { icon: Zap, title: "Solana Mainnet", desc: "Pagamentos em USDC na Solana. Rápido, barato e transparente." },
-            { icon: BookOpen, title: "AI Studio", desc: "Faz upload de um PDF e a AI cria um eBook profissional em minutos." },
-            { icon: TrendingUp, title: "Apenas 3%", desc: "A comissão mais baixa do mercado. Hotmart cobra 15-25%. Nós cobramos 3%." },
+            { icon: Shield, title: "Simple Checkout", desc: "Credit card with no mention of crypto. Buyers never see blockchain." },
+            { icon: Zap, title: "Solana Mainnet", desc: "USDC payments on Solana. Fast, cheap, and transparent." },
+            { icon: BookOpen, title: "AI Studio", desc: "Upload a PDF and AI creates a professional product in minutes." },
+            { icon: TrendingUp, title: "Only 3%", desc: "The lowest fee in the market. Hotmart charges 15-25%. We charge 3%." },
           ].map((feature) => (
             <div
               key={feature.title}
@@ -93,17 +93,17 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
         <div className="rounded-3xl border border-gray-800 bg-gradient-to-br from-teal-500/5 via-gray-900 to-gray-900 p-10 text-center sm:p-16">
           <h2 className="text-2xl font-bold text-white sm:text-3xl">
-            Pronto para começar a vender?
+            Ready to start selling?
           </h2>
           <p className="mt-3 text-gray-400">
-            Cria a tua conta, faz upload do teu conteúdo, e começa a ganhar em USDC.
+            Create your account, upload your content, and start earning in USDC.
           </p>
           <Link
             href="/dashboard/products/new"
             className="mt-8 inline-flex items-center gap-2 rounded-xl bg-teal-500 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-teal-500/25 transition-all hover:bg-teal-600"
           >
             <Sparkles className="h-4 w-4" />
-            Criar Meu Primeiro eBook
+            Create My First Product
           </Link>
         </div>
       </section>

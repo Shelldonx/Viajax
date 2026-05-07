@@ -67,7 +67,7 @@ export default function ProductPage() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner text="A carregar produto..." />
+        <LoadingSpinner text="Loading product..." />
       </div>
     );
   }
@@ -76,8 +76,8 @@ export default function ProductPage() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         <BookOpen className="h-12 w-12 text-gray-600" />
-        <h2 className="mt-4 text-xl font-semibold text-white">Produto não encontrado</h2>
-        <p className="mt-2 text-gray-500">Este eBook pode ter sido removido ou o link está incorrecto.</p>
+        <h2 className="mt-4 text-xl font-semibold text-white">Product not found</h2>
+        <p className="mt-2 text-gray-500">This product may have been removed or the link is incorrect.</p>
       </div>
     );
   }
@@ -100,7 +100,7 @@ export default function ProductPage() {
 
         {/* Detalhes */}
         <div className="md:col-span-3">
-          <Badge variant="teal">{product.category || "Geral"}</Badge>
+          <Badge variant="teal">{product.category || "General"}</Badge>
           <h1 className="mt-3 text-3xl font-bold text-white">{product.title}</h1>
 
           <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
@@ -114,36 +114,36 @@ export default function ProductPage() {
             </span>
             <span className="flex items-center gap-1">
               <ShoppingCart className="h-4 w-4" />
-              {product.sales_count} vendas
+              {product.sales_count} sales
             </span>
           </div>
 
           <div className="mt-6 rounded-2xl border border-gray-800 bg-gray-900/50 p-6">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-sm text-gray-500">Preço</p>
+                <p className="text-sm text-gray-500">Price</p>
                 <p className="text-3xl font-extrabold text-teal-400">{formatCurrency(product.price)}</p>
               </div>
               <Button size="lg" loading={buying} onClick={handleBuy}>
                 <ShoppingCart className="h-5 w-5" />
-                Comprar Agora
+                Buy Now
               </Button>
             </div>
           </div>
 
           <div className="mt-8">
-            <h2 className="text-lg font-semibold text-white">Sobre este eBook</h2>
+            <h2 className="text-lg font-semibold text-white">About this product</h2>
             <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-400">
-              {product.description || "Sem descrição disponível."}
+              {product.description || "No description available."}
             </p>
           </div>
 
           {/* Trust badges */}
           <div className="mt-8 grid grid-cols-3 gap-3">
             {[
-              { label: "Acesso imediato", detail: "Após pagamento" },
-              { label: "Taxa de 3%", detail: "Apoias o creator" },
-              { label: "Pagamento seguro", detail: "Crossmint + Solana" },
+              { label: "Instant access", detail: "After payment" },
+              { label: "Only 3% fee", detail: "Support the creator" },
+              { label: "Secure payment", detail: "Crossmint + Solana" },
             ].map((badge) => (
               <div key={badge.label} className="rounded-xl border border-gray-800 bg-gray-900/30 p-3 text-center">
                 <p className="text-xs font-medium text-white">{badge.label}</p>

@@ -49,7 +49,7 @@ export default function MarketplacePage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">Marketplace</h1>
-        <p className="mt-2 text-gray-400">Descobre eBooks criados por creators independentes.</p>
+        <p className="mt-2 text-gray-400">Discover digital products created by independent creators.</p>
       </div>
 
       {/* Filtros */}
@@ -59,7 +59,7 @@ export default function MarketplacePage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
-            placeholder="Pesquisar eBooks..."
+            placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-xl border border-gray-700 bg-gray-800/50 py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-teal-500 focus:outline-none sm:w-64"
@@ -70,7 +70,7 @@ export default function MarketplacePage() {
       {/* Grid */}
       {loading ? (
         <div className="py-20">
-          <LoadingSpinner text="A carregar eBooks..." />
+          <LoadingSpinner text="Loading products..." />
         </div>
       ) : (
         <ProductGrid products={products} />

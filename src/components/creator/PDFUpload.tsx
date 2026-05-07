@@ -20,13 +20,13 @@ export default function PDFUpload({ onUpload, loading }: PDFUploadProps) {
       const droppedFile = e.dataTransfer.files[0];
       if (droppedFile && droppedFile.type === "application/pdf") {
         if (droppedFile.size > 10 * 1024 * 1024) {
-          alert("O ficheiro não pode exceder 10MB");
+          alert("File cannot exceed 10MB");
           return;
         }
         setFile(droppedFile);
         onUpload(droppedFile);
       } else {
-        alert("Apenas ficheiros PDF são aceites");
+        alert("Only PDF files are accepted");
       }
     },
     [onUpload]
@@ -36,7 +36,7 @@ export default function PDFUpload({ onUpload, loading }: PDFUploadProps) {
     const selectedFile = e.target.files?.[0];
     if (selectedFile && selectedFile.type === "application/pdf") {
       if (selectedFile.size > 10 * 1024 * 1024) {
-        alert("O ficheiro não pode exceder 10MB");
+        alert("File cannot exceed 10MB");
         return;
       }
       setFile(selectedFile);
@@ -79,9 +79,9 @@ export default function PDFUpload({ onUpload, loading }: PDFUploadProps) {
     >
       <Upload className={cn("h-10 w-10", dragActive ? "text-teal-400" : "text-gray-600")} />
       <p className="mt-4 text-sm font-medium text-gray-300">
-        Arrasta o teu PDF aqui
+        Drag your PDF here
       </p>
-      <p className="mt-1 text-xs text-gray-600">ou clica para seleccionar (máx. 10MB)</p>
+      <p className="mt-1 text-xs text-gray-600">or click to select (max 10MB)</p>
       <input
         type="file"
         accept=".pdf,application/pdf"

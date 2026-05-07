@@ -40,9 +40,9 @@ export default function PaymentMethodSelector({
               onClick={() => setShowCrypto(true)}
               className="flex w-full items-center justify-center gap-1 text-sm text-gray-600 transition-colors hover:text-teal-400"
             >
-              Tens uma carteira Solana?{" "}
+              Have a Solana wallet?{" "}
               <span className="font-medium text-teal-500/70 hover:text-teal-400">
-                Pagar com crypto
+                Pay with crypto
               </span>
               <ChevronRight className="h-3 w-3 text-teal-500/70" />
             </button>

@@ -53,12 +53,12 @@ export default function CardCheckout({ orderId, amount, productTitle, onSuccess 
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Erro no pagamento");
+        throw new Error(data.error || "Payment error");
       }
 
       onSuccess();
     } catch (erro) {
-      setError((erro as Error).message || "Erro ao processar pagamento. Tenta novamente.");
+      setError((erro as Error).message || "Error processing payment. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -67,15 +67,15 @@ export default function CardCheckout({ orderId, amount, productTitle, onSuccess 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-white">Pagamento seguro</h3>
-        <p className="text-sm text-gray-500">A comprar: {productTitle}</p>
+        <h3 className="text-lg font-semibold text-white">Secure Payment</h3>
+        <p className="text-sm text-gray-500">Purchasing: {productTitle}</p>
       </div>
 
       <Input
         id="email"
         label="Email"
         type="email"
-        placeholder="o-teu@email.com"
+        placeholder="your@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
@@ -83,8 +83,8 @@ export default function CardCheckout({ orderId, amount, productTitle, onSuccess 
 
       <Input
         id="name"
-        label="Nome no cartão"
-        placeholder="Nome completo"
+        label="Name on card"
+        placeholder="Full name"
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
@@ -93,7 +93,7 @@ export default function CardCheckout({ orderId, amount, productTitle, onSuccess 
       <div className="relative">
         <Input
           id="card"
-          label="Número do cartão"
+          label="Card number"
           placeholder="1234 5678 9012 3456"
           value={cardNumber}
           onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
@@ -105,8 +105,8 @@ export default function CardCheckout({ orderId, amount, productTitle, onSuccess 
       <div className="grid grid-cols-2 gap-4">
         <Input
           id="expiry"
-          label="Validade"
-          placeholder="MM/AA"
+          label="Expiry"
+          placeholder="MM/YY"
           value={expiry}
           onChange={(e) => setExpiry(formatExpiry(e.target.value))}
           required
@@ -131,12 +131,12 @@ export default function CardCheckout({ orderId, amount, productTitle, onSuccess 
 
       <Button type="submit" fullWidth size="lg" loading={loading}>
         <Lock className="h-4 w-4" />
-        Pagar {formatCurrency(amount)} com Cartão
+        Pay {formatCurrency(amount)} with Card
       </Button>
 
       <p className="flex items-center justify-center gap-1 text-xs text-gray-600">
         <Lock className="h-3 w-3" />
-        Pagamento seguro via Crossmint
+        Secure payment via Crossmint
       </p>
     </form>
   );

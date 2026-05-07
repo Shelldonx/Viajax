@@ -43,7 +43,7 @@ export default function CheckoutPage() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner text="A carregar checkout..." />
+        <LoadingSpinner text="Loading checkout..." />
       </div>
     );
   }
@@ -52,8 +52,8 @@ export default function CheckoutPage() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         <ShoppingCart className="h-12 w-12 text-gray-600" />
-        <h2 className="mt-4 text-xl font-semibold text-white">Ordem não encontrada</h2>
-        <p className="mt-2 text-gray-500">Esta ordem pode ter expirado ou o link está incorrecto.</p>
+        <h2 className="mt-4 text-xl font-semibold text-white">Order not found</h2>
+        <p className="mt-2 text-gray-500">This order may have expired or the link is incorrect.</p>
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function CheckoutPage() {
     <div className="animate-fade-in mx-auto max-w-lg px-4 py-12 sm:px-6">
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-white">Checkout</h1>
-        <p className="mt-1 text-gray-400">Completa o teu pagamento</p>
+        <p className="mt-1 text-gray-400">Complete your payment</p>
       </div>
 
       <PaymentMethodSelector

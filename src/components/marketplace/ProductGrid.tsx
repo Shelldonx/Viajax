@@ -21,8 +21,8 @@ export default function ProductGrid({ products }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-lg text-gray-400">Nenhum eBook encontrado</p>
-        <p className="mt-1 text-sm text-gray-600">Volta mais tarde — novos eBooks são publicados diariamente.</p>
+        <p className="text-lg text-gray-400">No products found</p>
+        <p className="mt-1 text-sm text-gray-600">Come back later — new products are published daily.</p>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
           title={product.title}
           description={product.description || ""}
           price={product.price}
-          category={product.category || "Geral"}
+          category={product.category || "General"}
           coverImage={product.cover_image}
           creatorName={product.creator_name}
           salesCount={product.sales_count}

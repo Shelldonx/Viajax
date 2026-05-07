@@ -60,10 +60,10 @@ export default function ProductCard({
             </span>
             <div className="text-right">
               {creatorName && (
-                <p className="text-xs text-gray-500">por {creatorName}</p>
+                <p className="text-xs text-gray-500">by {creatorName}</p>
               )}
               {salesCount > 0 && (
-                <p className="text-xs text-gray-600">{salesCount} vendas</p>
+                <p className="text-xs text-gray-600">{salesCount} sales</p>
               )}
             </div>
           </div>

@@ -40,19 +40,19 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  if (loading) return <LoadingSpinner text="A carregar os teus eBooks..." />;
+  if (loading) return <LoadingSpinner text="Loading your products..." />;
 
   return (
     <div className="animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Meus eBooks</h1>
-          <p className="mt-1 text-sm text-gray-500">{products.length} eBook(s) publicado(s)</p>
+          <h1 className="text-2xl font-bold text-white">My Products</h1>
+          <p className="mt-1 text-sm text-gray-500">{products.length} product(s) published</p>
         </div>
         <Link href="/dashboard/products/new">
           <Button>
             <Plus className="h-4 w-4" />
-            Criar eBook
+            Create Product
           </Button>
         </Link>
       </div>
@@ -61,12 +61,12 @@ export default function ProductsPage() {
         <Card className="mt-8">
           <div className="flex flex-col items-center py-12 text-center">
             <BookOpen className="h-12 w-12 text-gray-600" />
-            <h3 className="mt-4 text-lg font-semibold text-white">Ainda sem eBooks</h3>
-            <p className="mt-2 text-sm text-gray-500">Cria o teu primeiro eBook com AI em menos de 5 minutos.</p>
+            <h3 className="mt-4 text-lg font-semibold text-white">No products yet</h3>
+            <p className="mt-2 text-sm text-gray-500">Create your first digital product in less than 5 minutes.</p>
             <Link href="/dashboard/products/new" className="mt-4">
               <Button>
                 <Plus className="h-4 w-4" />
-                Criar Primeiro eBook
+                Create First Product
               </Button>
             </Link>
           </div>
@@ -84,9 +84,9 @@ export default function ProductsPage() {
                   <div className="mt-1 flex items-center gap-2">
                     <span className="text-sm font-bold text-teal-400">{formatCurrency(product.price)}</span>
                     <Badge variant={product.published ? "green" : "gray"}>
-                      {product.published ? "Publicado" : "Rascunho"}
+                      {product.published ? "Published" : "Draft"}
                     </Badge>
-                    <span className="text-xs text-gray-500">{product.sales_count} vendas</span>
+                    <span className="text-xs text-gray-500">{product.sales_count} sales</span>
                   </div>
                 </div>
               </div>

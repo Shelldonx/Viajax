@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-const CATEGORIES = ["Todos", "Viagem", "Negócios", "Tecnologia", "Lifestyle", "Educação"];
+const CATEGORIES = ["All", "Travel", "Business", "Tech", "Lifestyle", "Education"];
 
 interface CategoryFilterProps {
   selected: string;
@@ -15,10 +15,10 @@ export default function CategoryFilter({ selected, onChange }: CategoryFilterPro
       {CATEGORIES.map((cat) => (
         <button
           key={cat}
-          onClick={() => onChange(cat === "Todos" ? "" : cat)}
+          onClick={() => onChange(cat === "All" ? "" : cat)}
           className={cn(
             "rounded-full px-4 py-2 text-sm font-medium transition-all",
-            (cat === "Todos" && !selected) || selected === cat
+            (cat === "All" && !selected) || selected === cat
               ? "bg-teal-500 text-white shadow-lg shadow-teal-500/25"
               : "bg-gray-800/50 text-gray-400 hover:bg-gray-800 hover:text-white"
           )}

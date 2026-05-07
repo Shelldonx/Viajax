@@ -1,36 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import { analyzePdf } from "@/lib/openai";
+import * as pdfParse from "pdf-parse";
 
-// POST — receber PDF, extrair texto, analisar com GPT-4o
+// POST — receive PDF, extract text, analyze with GPT-4o
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "Ficheiro PDF é obrigatório" }, { status: 400 });
+      return NextResponse.json({ error: "PDF file is required" }, { status: 400 });
     }
 
     if (file.type !== "application/pdf") {
-      return NextResponse.json({ error: "Apenas ficheiros PDF são aceites" }, { status: 400 });
+      return NextResponse.json({ error: "Only PDF files are accepted" }, { status: 400 });
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "O ficheiro não pode exceder 10MB" }, { status: 400 });
+      return NextResponse.json({ error: "File cannot exceed 10MB" }, { status: 400 });
     }
 
-    // Extrair texto do PDF
+    // Extract text from PDF
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse") as (buffer: Buffer) => Promise<{ text: string; numpages: number }>;
-    const pdfData = await pdfParse(buffer);
 
-    if (!pdfData.text || pdfData.text.trim().length < 100) {
-      return NextResponse.json({ error: "O PDF não contém texto suficiente para análise" }, { status: 400 });
+    let pdfData: { text: string; numpages: number };
+    try {
+      const parseFn = (pdfParse as unknown as { default?: typeof pdfParse }).default || pdfParse;
+      pdfData = await (parseFn as unknown as (buf: Buffer) => Promise<{ text: string; numpages: number }>)(buffer);
+    } catch (pdfError) {
+      console.error("[API Upload PDF] PDF parse error:", pdfError);
+      return NextResponse.json({ error: "Failed to read PDF. Make sure it contains readable text (not scanned images)." }, { status: 400 });
     }
 
-    // Analisar com GPT-4o
+    if (!pdfData.text || pdfData.text.trim().length < 100) {
+      return NextResponse.json({ error: "PDF does not contain enough text for analysis (minimum 100 characters)" }, { status: 400 });
+    }
+
+    // Analyze with GPT-4o
     const analysis = await analyzePdf(pdfData.text);
 
     return NextResponse.json({
@@ -39,7 +46,7 @@ export async function POST(request: NextRequest) {
       textLength: pdfData.text.length,
     });
   } catch (erro) {
-    console.error("[API Upload PDF] Erro:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao processar PDF" }, { status: 500 });
+    console.error("[API Upload PDF] Error:", (erro as Error).message);
+    return NextResponse.json({ error: "Error processing PDF. Please try again." }, { status: 500 });
   }
 }

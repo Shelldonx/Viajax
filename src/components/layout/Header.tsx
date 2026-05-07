@@ -44,13 +44,13 @@ export default function Header() {
               <span className="text-sm text-gray-400">{session.user?.name || session.user?.email}</span>
               <Button variant="ghost" size="sm" onClick={() => signOut()}>
                 <LogOut className="h-4 w-4" />
-                Sair
+                Sign Out
               </Button>
             </div>
           ) : (
             <Button variant="primary" size="sm" onClick={() => signIn()}>
               <LogIn className="h-4 w-4" />
-              Entrar
+              Sign In
             </Button>
           )}
         </div>
@@ -78,11 +78,11 @@ export default function Header() {
             )}
             {session ? (
               <button className="text-left text-sm text-gray-400 hover:text-white" onClick={() => signOut()}>
-                Sair
+                Sign Out
               </button>
             ) : (
               <button className="text-left text-sm text-teal-400 hover:text-teal-300" onClick={() => signIn()}>
-                Entrar
+                Sign In
               </button>
             )}
           </div>

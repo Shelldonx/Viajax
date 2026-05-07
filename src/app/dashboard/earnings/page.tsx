@@ -38,12 +38,12 @@ export default function EarningsPage() {
     fetchEarnings();
   }, []);
 
-  if (loading) return <LoadingSpinner text="A carregar ganhos..." />;
+  if (loading) return <LoadingSpinner text="Loading earnings..." />;
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-2xl font-bold text-white">Ganhos & Payouts</h1>
-      <p className="mt-1 text-sm text-gray-500">Todos os pagamentos são em USDC na Solana Mainnet.</p>
+      <h1 className="text-2xl font-bold text-white">Earnings & Payouts</h1>
+      <p className="mt-1 text-sm text-gray-500">All payments are in USDC on Solana Mainnet.</p>
 
       {/* Resumo */}
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -53,7 +53,7 @@ export default function EarningsPage() {
               <DollarSign className="h-5 w-5 text-green-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Total Ganho</p>
+              <p className="text-xs text-gray-500">Total Earned</p>
               <p className="text-lg font-bold text-white">{formatUsdc(totalEarned)} USDC</p>
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function EarningsPage() {
               <Clock className="h-5 w-5 text-orange-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Payout Pendente</p>
+              <p className="text-xs text-gray-500">Pending Payout</p>
               <p className="text-lg font-bold text-white">{formatUsdc(pendingPayout)} USDC</p>
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function EarningsPage() {
               <CheckCircle className="h-5 w-5 text-teal-400" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Payouts Realizados</p>
+              <p className="text-xs text-gray-500">Completed Payouts</p>
               <p className="text-lg font-bold text-white">{payouts.filter(p => p.status === "completed").length}</p>
             </div>
           </div>
@@ -85,17 +85,17 @@ export default function EarningsPage() {
       {/* Info */}
       <div className="mt-6 rounded-xl border border-teal-500/20 bg-teal-500/5 p-4">
         <p className="text-sm text-teal-400">
-          💡 Os payouts são processados automaticamente 7 dias após cada venda confirmada. Recebes directamente na tua carteira Solana em USDC.
+          Payouts are processed automatically 7 days after each confirmed sale. You receive directly in your Solana wallet in USDC.
         </p>
       </div>
 
       {/* Histórico */}
       <div className="mt-8">
-        <h2 className="text-lg font-semibold text-white">Histórico de Payouts</h2>
+        <h2 className="text-lg font-semibold text-white">Payout History</h2>
         {payouts.length === 0 ? (
           <Card className="mt-4">
             <p className="text-center text-sm text-gray-500 py-8">
-              Ainda sem payouts. Os teus ganhos vão aparecer aqui após a primeira venda.
+              No payouts yet. Your earnings will appear here after your first sale.
             </p>
           </Card>
         ) : (
@@ -104,7 +104,7 @@ export default function EarningsPage() {
               <Card key={payout.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Badge variant={payout.status === "completed" ? "green" : payout.status === "failed" ? "red" : "orange"}>
-                    {payout.status === "completed" ? "Pago" : payout.status === "failed" ? "Falhado" : "Pendente"}
+                    {payout.status === "completed" ? "Paid" : payout.status === "failed" ? "Failed" : "Pending"}
                   </Badge>
                   <div>
                     <p className="text-sm font-semibold text-white">{formatUsdc(payout.amount_usdc)} USDC</p>

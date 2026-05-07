@@ -38,7 +38,7 @@ export default function SuccessPage() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner text="A verificar pagamento..." />
+        <LoadingSpinner text="Verifying payment..." />
       </div>
     );
   }
@@ -49,24 +49,24 @@ export default function SuccessPage() {
         <CheckCircle className="h-12 w-12 text-green-400" />
       </div>
 
-      <h1 className="text-3xl font-bold text-white">Pagamento Confirmado!</h1>
+      <h1 className="text-3xl font-bold text-white">Payment Confirmed!</h1>
       <p className="mt-3 text-gray-400">
-        Obrigado pela tua compra de{" "}
-        <span className="font-semibold text-white">{data?.product_title || "eBook"}</span>.
+        Thank you for purchasing{" "}
+        <span className="font-semibold text-white">{data?.product_title || "Product"}</span>.
       </p>
 
       <div className="mt-8 rounded-2xl border border-gray-800 bg-gray-900/50 p-6">
-        <p className="text-sm text-gray-500">O teu eBook está pronto</p>
+        <p className="text-sm text-gray-500">Your product is ready</p>
         {data?.file_url ? (
           <a href={data.file_url} download>
             <Button className="mt-4" fullWidth size="lg">
               <Download className="h-5 w-5" />
-              Descarregar eBook
+              Download Product
             </Button>
           </a>
         ) : (
           <p className="mt-3 text-sm text-gray-400">
-            O link de download será enviado para o teu email em breve.
+            The download link will be sent to your email shortly.
           </p>
         )}
       </div>
@@ -74,7 +74,7 @@ export default function SuccessPage() {
       <div className="mt-8">
         <Link href="/marketplace">
           <Button variant="outline">
-            Explorar mais eBooks
+            Explore more products
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>

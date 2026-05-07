@@ -14,9 +14,9 @@ import {
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Overview" },
-  { href: "/dashboard/products", icon: BookOpen, label: "Meus eBooks" },
-  { href: "/dashboard/products/new", icon: Plus, label: "Criar eBook" },
-  { href: "/dashboard/earnings", icon: DollarSign, label: "Ganhos" },
+  { href: "/dashboard/products", icon: BookOpen, label: "My Products" },
+  { href: "/dashboard/products/new", icon: Plus, label: "Create Product" },
+  { href: "/dashboard/earnings", icon: DollarSign, label: "Earnings" },
 ];
 
 export default function DashboardSidebar() {
@@ -31,14 +31,14 @@ export default function DashboardSidebar() {
           className="flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          Voltar ao site
+          Back to site
         </Link>
       </div>
 
       {/* Título */}
       <div className="p-4">
         <h2 className="text-lg font-bold text-white">Dashboard</h2>
-        <p className="text-xs text-gray-500">Gere os teus eBooks e ganhos</p>
+        <p className="text-xs text-gray-500">Manage your products and earnings</p>
       </div>
 
       {/* Navegação */}
@@ -73,13 +73,13 @@ export default function DashboardSidebar() {
           <span className="text-sm font-semibold text-teal-400">AI Studio</span>
         </div>
         <p className="mt-1 text-xs text-gray-500">
-          Transforma o teu PDF num eBook profissional com GPT-4o
+          Turn your PDF into a professional product with GPT-4o
         </p>
         <Link
           href="/dashboard/products/new"
           className="mt-3 block text-center text-xs font-medium text-teal-400 hover:text-teal-300 transition-colors"
         >
-          Começar →
+          Get Started →
         </Link>
       </div>
     </aside>

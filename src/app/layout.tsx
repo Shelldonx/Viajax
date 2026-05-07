@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Viajax — Creator Marketplace on Solana",
-  description: "Marketplace open source para creators venderem eBooks digitais. Taxa de apenas 3%, payouts em USDC na Solana Mainnet, AI para criar conteúdo com GPT-4o.",
-  keywords: ["eBooks", "marketplace", "creators", "Solana", "USDC", "digital products"],
+  description: "Open-source marketplace for creators to sell low-ticket digital products. Only 3% fee, payouts in USDC on Solana Mainnet, AI-powered content creation with GPT-4o.",
+  keywords: ["digital products", "marketplace", "creators", "Solana", "USDC", "low ticket", "AI"],
   openGraph: {
     title: "Viajax — Creator Marketplace on Solana",
-    description: "Vende os teus eBooks com taxa de apenas 3%. Recebe em USDC.",
+    description: "Sell your digital products with only 3% fee. Get paid in USDC.",
     url: "https://viajax.es",
     siteName: "Viajax",
     type: "website",
@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="pt"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-gray-950 text-white">
