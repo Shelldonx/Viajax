@@ -1,0 +1,14 @@
+DirectoryIndex disabled
+Options -Indexes
+RewriteEngine On
+
+# HTTPS obrigatório
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Proxy para Node.js (porta a configurar no hPanel)
+# Substituir PORTA_HPANEL pela porta real do Node.js no hPanel
+RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
