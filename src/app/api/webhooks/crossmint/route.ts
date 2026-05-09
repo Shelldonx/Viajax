@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     // Verificar assinatura do webhook
     if (!verifyWebhook(payload, signature)) {
       console.error("[Webhook Crossmint] Assinatura inválida");
-      return NextResponse.json({ error: "Assinatura inválida" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const data = JSON.parse(payload);
@@ -49,6 +49,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (erro) {
     console.error("[Webhook Crossmint] Erro:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao processar webhook" }, { status: 500 });
+    return NextResponse.json({ error: "Error processing webhook" }, { status: 500 });
   }
 }

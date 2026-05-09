@@ -38,12 +38,12 @@ export default function WalletCheckout({ orderId, amountUsdc, productTitle, onSu
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Erro na verificação");
+        throw new Error(data.error || "Verification error");
       }
 
       onSuccess();
     } catch (erro) {
-      setError((erro as Error).message || "Erro ao processar pagamento. Tenta novamente.");
+      setError((erro as Error).message || "Error processing payment. Please try again.");
     } finally {
       setLoading(false);
     }

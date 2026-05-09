@@ -9,11 +9,11 @@ export async function POST(request: NextRequest) {
     const { orderId, walletAddress, txSignature } = body;
 
     if (!orderId || !walletAddress) {
-      return NextResponse.json({ error: "orderId e walletAddress são obrigatórios" }, { status: 400 });
+      return NextResponse.json({ error: "orderId and walletAddress are required" }, { status: 400 });
     }
 
     if (!isValidSolanaAddress(walletAddress)) {
-      return NextResponse.json({ error: "Endereço de carteira Solana inválido" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid Solana wallet address" }, { status: 400 });
     }
 
     // Se temos assinatura de transação, verificar on-chain
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       const result = await verifyTransaction(txSignature);
 
       if (!result.confirmed) {
-        return NextResponse.json({ error: "Transação não confirmada na blockchain" }, { status: 400 });
+        return NextResponse.json({ error: "Transaction not confirmed on blockchain" }, { status: 400 });
       }
 
       // Atualizar ordem como confirmada
@@ -41,12 +41,12 @@ export async function POST(request: NextRequest) {
     // Sem txSignature — retornar dados para o frontend iniciar o pagamento
     return NextResponse.json({
       success: true,
-      message: "Carteira validada. Prosseguir com pagamento via Jupiter.",
+      message: "Wallet validated. Proceed with payment via Jupiter.",
       walletAddress,
       orderId,
     });
   } catch (erro) {
     console.error("[API Verify Wallet] Erro:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao verificar pagamento" }, { status: 500 });
+    return NextResponse.json({ error: "Error verifying payment" }, { status: 500 });
   }
 }

@@ -17,8 +17,8 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Email",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "o-teu@email.com" },
-        name: { label: "Nome", type: "text", placeholder: "O teu nome" },
+        email: { label: "Email", type: "email", placeholder: "you@email.com" },
+        name: { label: "Name", type: "text", placeholder: "Your name" },
       },
       async authorize(credentials) {
         if (!credentials?.email) return null;
@@ -78,7 +78,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: "/",
+    signIn: "/auth/signin",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

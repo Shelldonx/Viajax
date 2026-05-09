@@ -30,12 +30,12 @@ export async function GET(
     );
 
     if (orders.length === 0) {
-      return NextResponse.json({ error: "Ordem não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
     return NextResponse.json({ order: orders[0] });
   } catch (erro) {
     console.error("[API Checkout Status] Erro:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao verificar ordem" }, { status: 500 });
+    return NextResponse.json({ error: "Error checking order" }, { status: 500 });
   }
 }

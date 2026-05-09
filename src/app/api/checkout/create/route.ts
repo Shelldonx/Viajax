@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const { productId, paymentMethod, buyerEmail, buyerName } = body;
 
     if (!productId) {
-      return NextResponse.json({ error: "productId é obrigatório" }, { status: 400 });
+      return NextResponse.json({ error: "productId is required" }, { status: 400 });
     }
 
     // Buscar produto
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (products.length === 0) {
-      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     const product = products[0];
@@ -64,6 +64,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (erro) {
     console.error("[API Checkout] Erro ao criar ordem:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao criar checkout" }, { status: 500 });
+    return NextResponse.json({ error: "Error creating checkout" }, { status: 500 });
   }
 }

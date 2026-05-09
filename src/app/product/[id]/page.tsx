@@ -53,12 +53,12 @@ export default function ProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: product.id }),
       });
-      if (!res.ok) throw new Error("Erro ao criar checkout");
+      if (!res.ok) throw new Error("Error creating checkout");
       const data = await res.json();
       router.push(`/checkout/${data.orderId}`);
     } catch (erro) {
-      console.error("Erro ao iniciar compra:", erro);
-      alert("Erro ao iniciar compra. Tenta novamente.");
+      console.error("Error starting purchase:", erro);
+      alert("Error starting purchase. Please try again.");
     } finally {
       setBuying(false);
     }

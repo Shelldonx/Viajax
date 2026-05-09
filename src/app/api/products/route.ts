@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { query, execute } from "@/lib/db";
 import { RowDataPacket } from "mysql2/promise";
 
@@ -16,13 +18,33 @@ interface ProductRow extends RowDataPacket {
   created_at: string;
 }
 
-// GET — listar produtos públicos
+// GET -- list products (public or creator's own)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const search = searchParams.get("search");
+    const mine = searchParams.get("mine");
 
+    // If ?mine=true, return only the current user's products
+    if (mine === "true") {
+      const session = await getServerSession(authOptions);
+      if (!session?.user) {
+        return NextResponse.json({ products: [] });
+      }
+      const userId = (session.user as { id?: string }).id || "";
+      const products = await query<ProductRow[]>(
+        `SELECT p.*, u.name as creator_name 
+         FROM products p 
+         JOIN users u ON p.creator_id = u.id 
+         WHERE p.creator_id = ?
+         ORDER BY p.created_at DESC`,
+        [userId]
+      );
+      return NextResponse.json({ products });
+    }
+
+    // Public listing
     let sql = `
       SELECT p.*, u.name as creator_name 
       FROM products p 
@@ -47,34 +69,46 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ products });
   } catch (erro) {
-    console.error("[API Products] Erro GET:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao carregar produtos" }, { status: 500 });
+    console.error("[API Products] Error GET:", (erro as Error).message);
+    return NextResponse.json({ error: "Error loading products" }, { status: 500 });
   }
 }
 
-// POST — criar produto (creator autenticado)
+// POST -- create product (authenticated creator)
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "You must be signed in to create a product" }, { status: 401 });
+    }
+
+    const userId = (session.user as { id?: string }).id;
+    if (!userId) {
+      return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { title, description, price, category, template, content } = body;
 
     if (!title || !price) {
-      return NextResponse.json({ error: "Título e preço são obrigatórios" }, { status: 400 });
+      return NextResponse.json({ error: "Title and price are required" }, { status: 400 });
     }
 
     const id = crypto.randomUUID();
-    // Por agora usar creator demo — depois ligar ao NextAuth session
-    const creatorId = "demo-creator-001";
 
     await execute(
       `INSERT INTO products (id, title, description, price, category, template, published, creator_id)
        VALUES (?, ?, ?, ?, ?, ?, TRUE, ?)`,
-      [id, title, description || "", price, category || "Geral", template || null, creatorId]
+      [id, title, description || "", price, category || "General", template || null, userId]
     );
 
-    return NextResponse.json({ product: { id, title, price }, message: "Produto criado com sucesso" }, { status: 201 });
+    return NextResponse.json({
+      product: { id, title, price },
+      shareUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://viajax.es"}/product/${id}`,
+      message: "Product created successfully",
+    }, { status: 201 });
   } catch (erro) {
-    console.error("[API Products] Erro POST:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao criar produto" }, { status: 500 });
+    console.error("[API Products] Error POST:", (erro as Error).message);
+    return NextResponse.json({ error: "Error creating product" }, { status: 500 });
   }
 }

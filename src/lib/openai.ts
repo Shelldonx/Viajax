@@ -1,13 +1,12 @@
 import OpenAI from "openai";
 
-// Cliente OpenAI singleton
 let client: OpenAI | null = null;
 
 function getClient(): OpenAI {
   if (!client) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error("OPENAI_API_KEY não configurada");
+      throw new Error("OPENAI_API_KEY not configured");
     }
     client = new OpenAI({ apiKey });
   }
@@ -16,7 +15,6 @@ function getClient(): OpenAI {
 
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 
-// Tipos
 export interface PdfAnalysis {
   suggestedTitle: string;
   chapters: string[];
@@ -34,77 +32,76 @@ export interface EbookTemplate {
   prompt: string;
 }
 
-// Os 5 templates de eBook
 export const EBOOK_TEMPLATES: EbookTemplate[] = [
   {
-    id: "guia-completo",
-    name: "Guia Completo",
-    description: "Introdução + por que importa + capítulos detalhados + conclusão + recursos",
+    id: "complete-guide",
+    name: "Complete Guide",
+    description: "Intro + chapters + conclusion + resources",
     icon: "📖",
-    prompt: `Cria um eBook no formato "Guia Completo" com a seguinte estrutura:
-1. Introdução cativante — porquê este tema é importante agora
-2. Por que importa — o impacto na vida do leitor
-3. Capítulos detalhados — cada um com exemplos práticos e accionáveis
-4. Conclusão — resumo dos pontos-chave e próximos passos
-5. Recursos adicionais — links, ferramentas, leituras recomendadas`,
+    prompt: `Create a digital product in the "Complete Guide" format with this structure:
+1. Engaging introduction -- why this topic matters right now
+2. Why it matters -- the impact on the reader's life
+3. Detailed chapters -- each with practical, actionable examples
+4. Conclusion -- summary of key points and next steps
+5. Additional resources -- links, tools, recommended reading`,
   },
   {
-    id: "tutorial-passo-a-passo",
-    name: "Tutorial Passo a Passo",
-    description: "Problema + o que vais aprender + passos numerados + erros comuns",
+    id: "step-by-step",
+    name: "Step by Step Tutorial",
+    description: "Problem + what you will learn + numbered steps + common mistakes",
     icon: "🔧",
-    prompt: `Cria um eBook no formato "Tutorial Passo a Passo" com a seguinte estrutura:
-1. O problema — que dor resolve este tutorial
-2. O que vais aprender — lista clara de resultados
-3. Pré-requisitos — o que precisas antes de começar
-4. Passos numerados — cada passo com instruções claras, screenshots conceptuais
-5. Erros comuns — o que NÃO fazer e como evitar
-6. Próximos passos — para onde ir depois de completar`,
+    prompt: `Create a digital product in the "Step by Step Tutorial" format with this structure:
+1. The problem -- what pain this tutorial solves
+2. What you will learn -- clear list of outcomes
+3. Prerequisites -- what you need before starting
+4. Numbered steps -- each step with clear instructions
+5. Common mistakes -- what NOT to do and how to avoid them
+6. Next steps -- where to go after completing this`,
   },
   {
-    id: "guia-viagem",
-    name: "Guia de Viagem",
-    description: "Destino + quando ir + itinerário dia a dia + dicas secretas",
+    id: "travel-guide",
+    name: "Travel Guide",
+    description: "Destination + when to go + day-by-day itinerary + secret tips",
     icon: "✈️",
-    prompt: `Cria um eBook no formato "Guia de Viagem" com a seguinte estrutura:
-1. O destino em 3 palavras — primeira impressão emocional
-2. Quando ir — melhor época, clima, eventos
-3. Itinerário dia a dia — roteiros detalhados por zona
-4. Top 10 experiências imperdíveis
-5. Dicas de orçamento — como gastar menos sem perder qualidade
-6. Segredos locais — o que só quem vive lá sabe`,
+    prompt: `Create a digital product in the "Travel Guide" format with this structure:
+1. The destination in 3 words -- first emotional impression
+2. When to go -- best season, weather, events
+3. Day-by-day itinerary -- detailed routes by area
+4. Top 10 unmissable experiences
+5. Budget tips -- how to spend less without losing quality
+6. Local secrets -- what only locals know`,
   },
   {
-    id: "manual-tecnico",
-    name: "Manual Técnico",
-    description: "Visão geral + conceitos + implementação + exemplos + FAQ",
+    id: "technical-manual",
+    name: "Technical Manual",
+    description: "Overview + concepts + implementation + examples + FAQ",
     icon: "⚙️",
-    prompt: `Cria um eBook no formato "Manual Técnico" com a seguinte estrutura:
-1. Visão geral — o que é, para quem é, e porquê
-2. Conceitos fundamentais — glossário e teoria essencial
-3. Como funciona — arquitectura e fluxos
-4. Implementação — código, comandos, configurações
-5. Exemplos práticos — casos de uso reais
-6. Referências — documentação oficial e recursos
-7. FAQ — perguntas frequentes com respostas directas`,
+    prompt: `Create a digital product in the "Technical Manual" format with this structure:
+1. Overview -- what it is, who it's for, and why
+2. Core concepts -- glossary and essential theory
+3. How it works -- architecture and flows
+4. Implementation -- code, commands, configurations
+5. Practical examples -- real-world use cases
+6. References -- official documentation and resources
+7. FAQ -- frequently asked questions with direct answers`,
   },
   {
-    id: "historia-sucesso",
-    name: "História de Sucesso",
-    description: "O antes + momento de viragem + o método + casos práticos",
+    id: "success-story",
+    name: "Success Story",
+    description: "The before + turning point + the method + case studies",
     icon: "🏆",
-    prompt: `Cria um eBook no formato "História de Sucesso" com a seguinte estrutura:
-1. O antes — como era a situação, as dificuldades
-2. O momento de viragem — o que mudou tudo
-3. O método — o sistema ou processo que trouxe resultados
-4. Os 3 pilares — os princípios fundamentais
-5. Como aplicar — passos para o leitor replicar
-6. Casos práticos — exemplos reais de pessoas que aplicaram
-7. A tua vez — motivação final e chamada à acção`,
+    prompt: `Create a digital product in the "Success Story" format with this structure:
+1. The before -- what the situation was like, the struggles
+2. The turning point -- what changed everything
+3. The method -- the system or process that brought results
+4. The 3 pillars -- the fundamental principles
+5. How to apply -- steps for the reader to replicate
+6. Case studies -- real examples of people who applied this
+7. Your turn -- final motivation and call to action`,
   },
 ];
 
-// Analisar PDF com GPT-4o
+// Analyze PDF with GPT-4o
 export async function analyzePdf(pdfText: string): Promise<PdfAnalysis> {
   try {
     const openai = getClient();
@@ -113,19 +110,19 @@ export async function analyzePdf(pdfText: string): Promise<PdfAnalysis> {
       messages: [
         {
           role: "system",
-          content: `És um editor profissional de eBooks. Analisa o texto de um PDF e extrai informações estruturadas. Responde SEMPRE em JSON válido com este formato exacto:
+          content: `You are a professional digital product editor. Analyze the text from a PDF and extract structured information. ALWAYS respond in valid JSON with this exact format:
 {
-  "suggestedTitle": "título sugerido para o eBook",
-  "chapters": ["capítulo 1", "capítulo 2", ...],
-  "keyPoints": ["ponto-chave 1", "ponto-chave 2", ...],
-  "targetAudience": "descrição do público-alvo",
-  "writingTone": "tom de escrita detectado",
-  "summary": "resumo de 2-3 frases do conteúdo"
+  "suggestedTitle": "suggested title for the product",
+  "chapters": ["chapter 1", "chapter 2", ...],
+  "keyPoints": ["key point 1", "key point 2", ...],
+  "targetAudience": "description of the target audience",
+  "writingTone": "detected writing tone",
+  "summary": "2-3 sentence summary of the content"
 }`,
         },
         {
           role: "user",
-          content: `Analisa este texto extraído de um PDF e devolve a análise em JSON:\n\n${pdfText.slice(0, 15000)}`,
+          content: `Analyze this text extracted from a PDF and return the analysis in JSON:\n\n${pdfText.slice(0, 15000)}`,
         },
       ],
       temperature: 0.3,
@@ -134,16 +131,16 @@ export async function analyzePdf(pdfText: string): Promise<PdfAnalysis> {
     });
 
     const content = response.choices[0]?.message?.content;
-    if (!content) throw new Error("Resposta vazia do GPT-4o");
+    if (!content) throw new Error("Empty response from GPT-4o");
 
     return JSON.parse(content) as PdfAnalysis;
   } catch (erro) {
-    console.error("[OpenAI] Erro ao analisar PDF:", (erro as Error).message);
+    console.error("[OpenAI] Error analyzing PDF:", (erro as Error).message);
     throw erro;
   }
 }
 
-// Gerar eBook com template escolhido
+// Generate product content with chosen template
 export async function generateEbook(
   template: EbookTemplate,
   analysis: PdfAnalysis,
@@ -156,26 +153,26 @@ export async function generateEbook(
       messages: [
         {
           role: "system",
-          content: `És um escritor profissional de eBooks. Gera conteúdo de alta qualidade em Markdown. O eBook deve ser completo, profissional e pronto a publicar. Escreve em português europeu.`,
+          content: `You are a professional digital product writer. Generate high-quality content in Markdown format. The product must be complete, professional, and ready to publish. Write in English.`,
         },
         {
           role: "user",
-          content: `Gera um eBook baseado nesta análise e template:
+          content: `Generate a complete digital product based on this analysis and template:
 
-ANÁLISE DO CONTEÚDO ORIGINAL:
-- Título sugerido: ${analysis.suggestedTitle}
-- Capítulos detectados: ${analysis.chapters.join(", ")}
-- Pontos-chave: ${analysis.keyPoints.join(", ")}
-- Público-alvo: ${analysis.targetAudience}
-- Tom de escrita: ${analysis.writingTone}
-- Resumo: ${analysis.summary}
+ORIGINAL CONTENT ANALYSIS:
+- Suggested title: ${analysis.suggestedTitle}
+- Detected chapters: ${analysis.chapters.join(", ")}
+- Key points: ${analysis.keyPoints.join(", ")}
+- Target audience: ${analysis.targetAudience}
+- Writing tone: ${analysis.writingTone}
+- Summary: ${analysis.summary}
 
-TEMPLATE ESCOLHIDO: ${template.name}
+CHOSEN TEMPLATE: ${template.name}
 ${template.prompt}
 
-${customInstructions ? `INSTRUÇÕES ADICIONAIS DO CREATOR:\n${customInstructions}` : ""}
+${customInstructions ? `ADDITIONAL INSTRUCTIONS FROM CREATOR:\n${customInstructions}` : ""}
 
-Gera o eBook completo em Markdown com formatação profissional. Inclui emojis subtis nos títulos. Mínimo 3000 palavras.`,
+Generate the complete product in Markdown with professional formatting. Minimum 3000 words.`,
         },
       ],
       temperature: 0.7,
@@ -183,11 +180,11 @@ Gera o eBook completo em Markdown com formatação profissional. Inclui emojis s
     });
 
     const content = response.choices[0]?.message?.content;
-    if (!content) throw new Error("Resposta vazia do GPT-4o");
+    if (!content) throw new Error("Empty response from GPT-4o");
 
     return content;
   } catch (erro) {
-    console.error("[OpenAI] Erro ao gerar eBook:", (erro as Error).message);
+    console.error("[OpenAI] Error generating product:", (erro as Error).message);
     throw erro;
   }
 }

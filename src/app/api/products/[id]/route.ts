@@ -32,13 +32,13 @@ export async function GET(
     );
 
     if (products.length === 0) {
-      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     return NextResponse.json({ product: products[0] });
   } catch (erro) {
     console.error("[API Product] Erro GET:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao carregar produto" }, { status: 500 });
+    return NextResponse.json({ error: "Error loading product" }, { status: 500 });
   }
 }
 
@@ -57,10 +57,10 @@ export async function PUT(
       [title, description, price, category, published ? 1 : 0, id]
     );
 
-    return NextResponse.json({ message: "Produto atualizado" });
+    return NextResponse.json({ message: "Product updated" });
   } catch (erro) {
     console.error("[API Product] Erro PUT:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao atualizar produto" }, { status: 500 });
+    return NextResponse.json({ error: "Error updating product" }, { status: 500 });
   }
 }
 
@@ -72,9 +72,9 @@ export async function DELETE(
   try {
     const { id } = await params;
     await execute("DELETE FROM products WHERE id = ?", [id]);
-    return NextResponse.json({ message: "Produto removido" });
+    return NextResponse.json({ message: "Product deleted" });
   } catch (erro) {
     console.error("[API Product] Erro DELETE:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao remover produto" }, { status: 500 });
+    return NextResponse.json({ error: "Error deleting product" }, { status: 500 });
   }
 }

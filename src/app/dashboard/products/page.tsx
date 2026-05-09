@@ -6,7 +6,7 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { Plus, BookOpen, Edit, Eye } from "lucide-react";
+import { Plus, BookOpen, Edit, Eye, LinkIcon, Check } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface Product {
@@ -22,6 +22,7 @@ interface Product {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -32,13 +33,20 @@ export default function ProductsPage() {
           setProducts(data.products || []);
         }
       } catch (erro) {
-        console.error("Erro ao carregar produtos:", erro);
+        console.error("Error loading products:", erro);
       } finally {
         setLoading(false);
       }
     }
     fetchProducts();
   }, []);
+
+  function copyShareLink(productId: string) {
+    const url = `${window.location.origin}/product/${productId}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(productId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
 
   if (loading) return <LoadingSpinner text="Loading your products..." />;
 
@@ -74,29 +82,48 @@ export default function ProductsPage() {
       ) : (
         <div className="mt-6 space-y-3">
           {products.map((product) => (
-            <Card key={product.id} className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-800">
-                  <BookOpen className="h-6 w-6 text-gray-500" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-white">{product.title}</h3>
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className="text-sm font-bold text-teal-400">{formatCurrency(product.price)}</span>
-                    <Badge variant={product.published ? "green" : "gray"}>
-                      {product.published ? "Published" : "Draft"}
-                    </Badge>
-                    <span className="text-xs text-gray-500">{product.sales_count} sales</span>
+            <Card key={product.id}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-800">
+                    <BookOpen className="h-6 w-6 text-gray-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">{product.title}</h3>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-sm font-bold text-teal-400">{formatCurrency(product.price)}</span>
+                      <Badge variant={product.published ? "green" : "gray"}>
+                        {product.published ? "Published" : "Draft"}
+                      </Badge>
+                      <span className="text-xs text-gray-500">{product.sales_count} sales</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Link href={`/product/${product.id}`}>
-                  <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
-                </Link>
-                <Link href={`/dashboard/studio/${product.id}`}>
-                  <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => copyShareLink(product.id)}
+                    className="flex items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800/50 px-3 py-1.5 text-xs font-medium text-gray-400 transition-all hover:border-teal-500 hover:text-teal-400"
+                    title="Copy share link"
+                  >
+                    {copiedId === product.id ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-green-400" />
+                        <span className="text-green-400">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <LinkIcon className="h-3.5 w-3.5" />
+                        Share Link
+                      </>
+                    )}
+                  </button>
+                  <Link href={`/product/${product.id}`}>
+                    <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
+                  </Link>
+                  <Link href={`/dashboard/studio/${product.id}`}>
+                    <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
+                  </Link>
+                </div>
               </div>
             </Card>
           ))}
