@@ -25,11 +25,16 @@ export default function CheckoutPage() {
     async function fetchOrder() {
       try {
         const res = await fetch(`/api/checkout/status/${params.orderId}`);
-        if (!res.ok) throw new Error("Order not found");
+        if (!res.ok) {
+          console.error("Checkout status error:", res.status);
+          setOrder(null);
+          return;
+        }
         const data = await res.json();
         setOrder(data.order);
       } catch (erro) {
         console.error("Error loading checkout:", erro);
+        setOrder(null);
       } finally {
         setLoading(false);
       }

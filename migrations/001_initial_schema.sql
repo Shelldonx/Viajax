@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS products (
   title VARCHAR(255) NOT NULL,
   description TEXT,
   price DECIMAL(10,2) NOT NULL,
-  cover_image VARCHAR(500),
+  cover_image MEDIUMTEXT,
   file_url VARCHAR(500),
   category VARCHAR(100),
   template VARCHAR(100),

@@ -112,10 +112,6 @@ export default function ProductPage() {
               <Calendar className="h-4 w-4" />
               {formatDate(product.created_at)}
             </span>
-            <span className="flex items-center gap-1">
-              <ShoppingCart className="h-4 w-4" />
-              {product.sales_count} sales
-            </span>
           </div>
 
           <div className="mt-6 rounded-2xl border border-gray-800 bg-gray-900/50 p-6">

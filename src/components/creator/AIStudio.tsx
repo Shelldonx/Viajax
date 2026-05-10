@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PDFUpload from "./PDFUpload";
 import TemplateSelector from "./TemplateSelector";
+import ThumbnailCropper from "./ThumbnailCropper";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { cn } from "@/lib/utils";
-import { Upload, Layout, Sparkles, Rocket, Check, RefreshCw, FileUp, Package } from "lucide-react";
+import { Upload, Layout, Sparkles, Rocket, Check, RefreshCw, FileUp, Package, Image as ImageIcon } from "lucide-react";
 
 interface PdfAnalysis {
   suggestedTitle: string;
@@ -62,6 +63,13 @@ export default function AIStudio() {
   const [loadingPublish, setLoadingPublish] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [thumbnailBlob, setThumbnailBlob] = useState<Blob | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
+  function handleThumbnailCropped(blob: Blob) {
+    setThumbnailBlob(blob);
+    setThumbnailPreview(URL.createObjectURL(blob));
+  }
 
   // Upload PDF for AI analysis
   async function handleUpload(file: File) {
@@ -128,6 +136,16 @@ export default function AIStudio() {
   async function handlePublish() {
     setLoadingPublish(true);
     try {
+      // Convert thumbnail to base64 if exists
+      let coverImage: string | null = null;
+      if (thumbnailBlob) {
+        const reader = new FileReader();
+        coverImage = await new Promise((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(thumbnailBlob);
+        });
+      }
+
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -138,6 +156,7 @@ export default function AIStudio() {
           category,
           template: selectedTemplate || null,
           content: generatedContent || null,
+          coverImage,
         }),
       });
       if (!res.ok) throw new Error("Error publishing product");
@@ -235,6 +254,22 @@ export default function AIStudio() {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+          </div>
+
+          {/* Thumbnail */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-300">Cover Thumbnail</label>
+            {thumbnailPreview ? (
+              <div className="flex items-start gap-4">
+                <img src={thumbnailPreview} alt="Thumbnail" className="h-40 w-30 rounded-lg border border-gray-700 object-cover" />
+                <button
+                  onClick={() => { setThumbnailBlob(null); setThumbnailPreview(null); }}
+                  className="text-sm text-gray-500 hover:text-white"
+                >Remove</button>
+              </div>
+            ) : (
+              <ThumbnailCropper onCropped={handleThumbnailCropped} />
+            )}
           </div>
 
           {/* File upload */}
@@ -407,6 +442,22 @@ export default function AIStudio() {
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Thumbnail for AI mode */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-300">Cover Thumbnail</label>
+              {thumbnailPreview ? (
+                <div className="flex items-start gap-4">
+                  <img src={thumbnailPreview} alt="Thumbnail" className="h-40 w-30 rounded-lg border border-gray-700 object-cover" />
+                  <button
+                    onClick={() => { setThumbnailBlob(null); setThumbnailPreview(null); }}
+                    className="text-sm text-gray-500 hover:text-white"
+                  >Remove</button>
+                </div>
+              ) : (
+                <ThumbnailCropper onCropped={handleThumbnailCropped} />
+              )}
             </div>
 
             <Button fullWidth size="lg" loading={loadingPublish} onClick={handlePublish}>

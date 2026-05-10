@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, description, price, category, template, content } = body;
+    const { title, description, price, category, template, content, coverImage } = body;
 
     if (!title || !price) {
       return NextResponse.json({ error: "Title and price are required" }, { status: 400 });
@@ -98,9 +98,9 @@ export async function POST(request: NextRequest) {
     const id = crypto.randomUUID();
 
     await execute(
-      `INSERT INTO products (id, title, description, price, category, template, published, creator_id)
-       VALUES (?, ?, ?, ?, ?, ?, TRUE, ?)`,
-      [id, title, description || "", price, category || "General", template || null, userId]
+      `INSERT INTO products (id, title, description, price, category, template, cover_image, published, creator_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, ?)`,
+      [id, title, description || "", price, category || "General", template || null, coverImage || null, userId]
     );
 
     return NextResponse.json({
