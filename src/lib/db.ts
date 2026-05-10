@@ -12,8 +12,9 @@ function getPool(): Pool {
       password: process.env.DB_PASS || "",
       database: process.env.DB_NAME || "u311001338_viajaxdata",
       waitForConnections: true,
-      connectionLimit: 10,
+      connectionLimit: 5,
       queueLimit: 0,
+      connectTimeout: 5000,
       charset: "utf8mb4",
     };
     pool = mysql.createPool(config);
@@ -26,13 +27,9 @@ export async function query<T extends RowDataPacket[]>(
   sql: string,
   params?: (string | number | boolean | null)[]
 ): Promise<T> {
-  try {
-    const [rows] = await getPool().execute<T>(sql, params ?? []);
-    return rows;
-  } catch (erro) {
-    console.error("[DB] Erro na query:", (erro as Error).message);
-    throw erro;
-  }
+  const p = getPool();
+  const [rows] = await p.execute<T>(sql, params ?? []);
+  return rows;
 }
 
 // Execute para INSERT, UPDATE, DELETE — retorna ResultSetHeader
@@ -40,13 +37,9 @@ export async function execute(
   sql: string,
   params?: (string | number | boolean | null)[]
 ): Promise<ResultSetHeader> {
-  try {
-    const [result] = await getPool().execute<ResultSetHeader>(sql, params ?? []);
-    return result;
-  } catch (erro) {
-    console.error("[DB] Erro no execute:", (erro as Error).message);
-    throw erro;
-  }
+  const p = getPool();
+  const [result] = await p.execute<ResultSetHeader>(sql, params ?? []);
+  return result;
 }
 
 // Health check da base de dados

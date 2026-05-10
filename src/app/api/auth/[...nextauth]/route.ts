@@ -39,68 +39,73 @@ export const authOptions: NextAuthOptions = {
         role: { label: "Role", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-
-        const email = credentials.email.trim().toLowerCase();
-        const password = credentials.password;
-        const role = credentials.role || "consumer";
-        const isCreator = role === "creator";
-
-        if (password.length < 6) return null;
-
-        const hashedPassword = hashPassword(password);
-
         try {
-          // Check if user exists
-          const users = await query<UserRow[]>(
-            "SELECT * FROM users WHERE email = ?",
-            [email]
-          );
+          if (!credentials?.email || !credentials?.password) return null;
 
-          if (users.length > 0) {
-            const user = users[0];
-            // If user has a password, verify it
-            if (user.password_hash && user.password_hash !== hashedPassword) {
-              return null; // Wrong password
+          const email = credentials.email.trim().toLowerCase();
+          const password = credentials.password;
+          const role = credentials.role || "consumer";
+          const isCreator = role === "creator";
+
+          if (password.length < 6) return null;
+
+          const hashedPassword = hashPassword(password);
+
+          try {
+            // Check if user exists
+            const users = await query<UserRow[]>(
+              "SELECT * FROM users WHERE email = ?",
+              [email]
+            );
+
+            if (users.length > 0) {
+              const user = users[0];
+              // If user has a password, verify it
+              if (user.password_hash && user.password_hash !== hashedPassword) {
+                return null; // Wrong password
+              }
+              // If user exists but has no password, set it now
+              if (!user.password_hash) {
+                await execute(
+                  "UPDATE users SET password_hash = ? WHERE id = ?",
+                  [hashedPassword, user.id]
+                ).catch(() => {});
+              }
+              // Update is_creator if user is signing in as creator
+              if (isCreator && !user.is_creator) {
+                await execute(
+                  "UPDATE users SET is_creator = TRUE WHERE id = ?",
+                  [user.id]
+                ).catch(() => {});
+              }
+              return {
+                id: user.id,
+                email: user.email,
+                name: user.name || email.split("@")[0],
+                image: user.image || null,
+                isCreator: isCreator || user.is_creator,
+              };
             }
-            // If user exists but has no password (created via Google), set it now
-            if (!user.password_hash) {
-              await execute(
-                "UPDATE users SET password_hash = ? WHERE id = ?",
-                [hashedPassword, user.id]
-              );
-            }
-            // Update is_creator if user is signing in as creator
-            if (isCreator && !user.is_creator) {
-              await execute(
-                "UPDATE users SET is_creator = TRUE WHERE id = ?",
-                [user.id]
-              );
-            }
-            return {
-              id: user.id,
-              email: user.email,
-              name: user.name || email.split("@")[0],
-              image: user.image,
-              isCreator: isCreator || user.is_creator,
-            };
+
+            // Create new user with password and role
+            const id = crypto.randomUUID();
+            const name = email.split("@")[0];
+            await execute(
+              "INSERT INTO users (id, email, name, password_hash, is_creator) VALUES (?, ?, ?, ?, ?)",
+              [id, email, name, hashedPassword, isCreator]
+            );
+
+            return { id, email, name, isCreator };
+          } catch (dbError) {
+            console.error("[Auth] DB Error:", (dbError as Error).message);
+            // Fallback: If DB is unreachable, create a temporary session
+            const fallbackId = crypto.randomUUID();
+            console.warn("[Auth] Using fallback session for:", email);
+            return { id: fallbackId, email, name: email.split("@")[0], isCreator };
           }
-
-          // Create new user with password and role
-          const id = crypto.randomUUID();
-          const name = email.split("@")[0];
-          await execute(
-            "INSERT INTO users (id, email, name, password_hash, is_creator) VALUES (?, ?, ?, ?, ?)",
-            [id, email, name, hashedPassword, isCreator]
-          );
-
-          return { id, email, name, isCreator };
-        } catch (dbError) {
-          console.error("[Auth] DB Error:", (dbError as Error).message);
-          // Fallback: If DB is unreachable, create a temporary session
-          const fallbackId = crypto.randomUUID();
-          console.warn("[Auth] Using fallback session for:", email);
-          return { id: fallbackId, email, name: email.split("@")[0], isCreator };
+        } catch (outerError) {
+          console.error("[Auth] Critical error:", outerError);
+          return null;
         }
       },
     }),
@@ -111,9 +116,9 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account }) {
-      // For Google OAuth, sync user to DB
-      if (account?.provider === "google" && user.email) {
-        try {
+      try {
+        // For Google OAuth, sync user to DB
+        if (account?.provider === "google" && user.email) {
           const users = await query<UserRow[]>(
             "SELECT * FROM users WHERE email = ?",
             [user.email]
@@ -128,9 +133,9 @@ export const authOptions: NextAuthOptions = {
           } else {
             user.id = users[0].id;
           }
-        } catch (dbError) {
-          console.error("[Auth] Google sync DB error:", (dbError as Error).message);
         }
+      } catch (err) {
+        console.error("[Auth] signIn callback error:", err);
       }
       return true;
     },
