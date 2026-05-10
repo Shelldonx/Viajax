@@ -36,12 +36,15 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email", placeholder: "you@email.com" },
         password: { label: "Password", type: "password" },
+        role: { label: "Role", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
         const password = credentials.password;
+        const role = credentials.role || "consumer";
+        const isCreator = role === "creator";
 
         if (password.length < 6) return null;
 
@@ -67,29 +70,37 @@ export const authOptions: NextAuthOptions = {
                 [hashedPassword, user.id]
               );
             }
+            // Update is_creator if user is signing in as creator
+            if (isCreator && !user.is_creator) {
+              await execute(
+                "UPDATE users SET is_creator = TRUE WHERE id = ?",
+                [user.id]
+              );
+            }
             return {
               id: user.id,
               email: user.email,
               name: user.name || email.split("@")[0],
               image: user.image,
+              isCreator: isCreator || user.is_creator,
             };
           }
 
-          // Create new user with password
+          // Create new user with password and role
           const id = crypto.randomUUID();
           const name = email.split("@")[0];
           await execute(
-            "INSERT INTO users (id, email, name, password_hash) VALUES (?, ?, ?, ?)",
-            [id, email, name, hashedPassword]
+            "INSERT INTO users (id, email, name, password_hash, is_creator) VALUES (?, ?, ?, ?, ?)",
+            [id, email, name, hashedPassword, isCreator]
           );
 
-          return { id, email, name };
+          return { id, email, name, isCreator };
         } catch (dbError) {
           console.error("[Auth] DB Error:", (dbError as Error).message);
           // Fallback: If DB is unreachable, create a temporary session
           const fallbackId = crypto.randomUUID();
           console.warn("[Auth] Using fallback session for:", email);
-          return { id: fallbackId, email, name: email.split("@")[0] };
+          return { id: fallbackId, email, name: email.split("@")[0], isCreator };
         }
       },
     }),
@@ -128,12 +139,14 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        token.isCreator = (user as { isCreator?: boolean }).isCreator || false;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as { id?: string }).id = token.id as string;
+        (session.user as { id?: string; isCreator?: boolean }).id = token.id as string;
+        (session.user as { id?: string; isCreator?: boolean }).isCreator = token.isCreator as boolean;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
       }

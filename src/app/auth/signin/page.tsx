@@ -5,8 +5,11 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { LogIn, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { LogIn, ArrowLeft, Eye, EyeOff, ShoppingBag, Store } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+type UserRole = "creator" | "consumer";
 
 function SignInForm() {
   const router = useRouter();
@@ -16,6 +19,7 @@ function SignInForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<UserRole>("consumer");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(
@@ -42,13 +46,19 @@ function SignInForm() {
       const result = await signIn("credentials", {
         email,
         password,
+        role,
         redirect: false,
       });
 
       if (result?.error) {
         setError("Incorrect email or password.");
       } else {
-        router.push(callbackUrl);
+        // Redirect based on role
+        if (role === "creator") {
+          router.push("/dashboard/products/new");
+        } else {
+          router.push(callbackUrl === "/dashboard" ? "/marketplace" : callbackUrl);
+        }
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -75,11 +85,44 @@ function SignInForm() {
             </div>
             <h1 className="text-2xl font-bold text-white">Welcome to Viajax</h1>
             <p className="mt-2 text-sm text-gray-400">
-              Sign in or create your account to start selling digital products.
+              Sign in or create your account.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Role selector */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-300">What do you want to do?</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRole("consumer")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-xl border p-4 transition-all",
+                    role === "consumer"
+                      ? "border-teal-500 bg-teal-500/10 text-teal-400"
+                      : "border-gray-700 bg-gray-800/30 text-gray-400 hover:border-gray-600"
+                  )}
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                  <span className="text-xs font-medium">Buy Products</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("creator")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-xl border p-4 transition-all",
+                    role === "creator"
+                      ? "border-teal-500 bg-teal-500/10 text-teal-400"
+                      : "border-gray-700 bg-gray-800/30 text-gray-400 hover:border-gray-600"
+                  )}
+                >
+                  <Store className="h-5 w-5" />
+                  <span className="text-xs font-medium">Sell Products</span>
+                </button>
+              </div>
+            </div>
+
             <Input
               id="email"
               label="Email"
