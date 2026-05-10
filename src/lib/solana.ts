@@ -165,5 +165,58 @@ export async function verifyTransaction(txSignature: string): Promise<{ confirme
   }
 }
 
-// Exportar constantes úteis
+// Get platform keypair from private key env var
+export async function getPlatformKeypair(): Promise<Keypair> {
+  const privateKeyStr = process.env.PLATFORM_WALLET_PRIVATE_KEY;
+  if (!privateKeyStr) {
+    throw new Error("PLATFORM_WALLET_PRIVATE_KEY not configured");
+  }
+  try {
+    const secretKey = JSON.parse(privateKeyStr);
+    return Keypair.fromSecretKey(Uint8Array.from(secretKey));
+  } catch {
+    const bs58 = await import("bs58");
+    return Keypair.fromSecretKey(bs58.default.decode(privateKeyStr));
+  }
+}
+
+// Verify a USDC payment on-chain: checks tx confirmed + correct amount + correct recipient
+export async function verifyUsdcPayment(
+  txSignature: string,
+  expectedAmount: number,
+  expectedRecipient: string
+): Promise<boolean> {
+  try {
+    const conn = getConnection();
+    const tx = await conn.getParsedTransaction(txSignature, {
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
+    });
+
+    if (!tx || tx.meta?.err) return false;
+
+    const postBalances = tx.meta?.postTokenBalances || [];
+    const preBalances = tx.meta?.preTokenBalances || [];
+
+    for (const post of postBalances) {
+      if (post.mint === USDC_MINT && post.owner === expectedRecipient) {
+        const pre = preBalances.find(
+          (p) => p.accountIndex === post.accountIndex
+        );
+        const preAmount = pre ? parseFloat(pre.uiTokenAmount.uiAmountString || "0") : 0;
+        const postAmount = parseFloat(post.uiTokenAmount.uiAmountString || "0");
+        const received = postAmount - preAmount;
+        // Allow 1% tolerance for rounding
+        if (received >= expectedAmount * 0.99) return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error("[Solana] Error verifying USDC payment:", (error as Error).message);
+    return false;
+  }
+}
+
+// Export useful constants
 export { USDC_MINT, USDC_DECIMALS, LAMPORTS_PER_SOL, SystemProgram };

@@ -2,10 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["pdf-parse", "mysql2"],
+  serverExternalPackages: ["pdf-parse", "mysql2", "@solana/web3.js", "bs58"],
   images: {
-    domains: ["viajax.es"],
-    unoptimized: false,
+    remotePatterns: [
+      { protocol: "https", hostname: "viajax.es" },
+    ],
   },
 };
 

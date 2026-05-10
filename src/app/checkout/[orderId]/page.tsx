@@ -8,6 +8,7 @@ import { ShoppingCart } from "lucide-react";
 
 interface OrderData {
   id: string;
+  product_id: string;
   product_title: string;
   amount_usd: number;
   amount_usdc: number;
@@ -24,11 +25,11 @@ export default function CheckoutPage() {
     async function fetchOrder() {
       try {
         const res = await fetch(`/api/checkout/status/${params.orderId}`);
-        if (!res.ok) throw new Error("Ordem não encontrada");
+        if (!res.ok) throw new Error("Order not found");
         const data = await res.json();
         setOrder(data.order);
       } catch (erro) {
-        console.error("Erro ao carregar checkout:", erro);
+        console.error("Error loading checkout:", erro);
       } finally {
         setLoading(false);
       }
@@ -70,6 +71,7 @@ export default function CheckoutPage() {
         amount={order.amount_usd}
         amountUsdc={order.amount_usdc}
         productTitle={order.product_title}
+        productId={order.product_id}
         onSuccess={handleSuccess}
       />
     </div>

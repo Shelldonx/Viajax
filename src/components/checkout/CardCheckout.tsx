@@ -1,143 +1,136 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import { Lock, CreditCard } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { CreditCard, CheckCircle, Loader2 } from "lucide-react";
 
-interface CardCheckoutProps {
+export interface CardCheckoutProps {
   orderId: string;
   amount: number;
   productTitle: string;
+  productId: string;
+  buyerEmail: string;
   onSuccess: () => void;
 }
 
-export default function CardCheckout({ orderId, amount, productTitle, onSuccess }: CardCheckoutProps) {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
+export default function CardCheckout({
+  orderId,
+  amount,
+  productTitle,
+  productId,
+  buyerEmail,
+  onSuccess,
+}: CardCheckoutProps) {
   const [loading, setLoading] = useState(false);
+  const [polling, setPolling] = useState(false);
   const [error, setError] = useState("");
+  const [crossmintOrderId, setCrossmintOrderId] = useState("");
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  function formatCardNumber(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, 16);
-    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
-  }
+  // Poll for payment completion
+  const startPolling = useCallback((cmOrderId: string) => {
+    setPolling(true);
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/checkout/status/${orderId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.order?.payment_status === "confirmed") {
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          setPolling(false);
+          onSuccess();
+        }
+      } catch {
+        // Keep polling
+      }
+    }, 3000);
+  }, [orderId, onSuccess]);
 
-  function formatExpiry(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, 4);
-    if (digits.length >= 3) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-    return digits;
-  }
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handlePayWithCard() {
     setError("");
     setLoading(true);
 
     try {
-      // Enviar para Crossmint via API
+      // Create checkout order via our API (which calls Crossmint)
       const res = await fetch("/api/checkout/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          orderId,
+          productId,
+          buyerEmail: buyerEmail || "buyer@viajax.es",
           paymentMethod: "card",
-          buyerEmail: email,
-          buyerName: name,
         }),
       });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Payment error");
+        throw new Error(data.error || "Error creating payment");
       }
 
-      onSuccess();
-    } catch (erro) {
-      setError((erro as Error).message || "Error processing payment. Please try again.");
-    } finally {
+      const data = await res.json();
+      const cmOrderId = data.crossmintOrderId;
+      setCrossmintOrderId(cmOrderId);
+
+      // Open Crossmint hosted checkout in a new tab
+      if (cmOrderId) {
+        const checkoutUrl = `https://www.crossmint.com/checkout?orderId=${cmOrderId}&projectId=${process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID}`;
+        window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+      }
+
+      // Start polling for payment confirmation
+      startPolling(cmOrderId);
+    } catch (err) {
+      setError((err as Error).message || "Error processing payment. Please try again.");
       setLoading(false);
     }
   }
 
+  if (polling) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-6 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
+        <div>
+          <p className="text-sm font-medium text-white">Waiting for payment confirmation...</p>
+          <p className="mt-1 text-xs text-gray-500">
+            Complete the payment in the Crossmint window.
+          </p>
+          <p className="mt-1 text-xs text-gray-600">
+            This page will update automatically when your payment is confirmed.
+          </p>
+        </div>
+        {crossmintOrderId && (
+          <p className="text-xs text-gray-600">
+            Order: {crossmintOrderId.slice(0, 12)}...
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-white">Secure Payment</h3>
-        <p className="text-sm text-gray-500">Purchasing: {productTitle}</p>
-      </div>
-
-      <Input
-        id="email"
-        label="Email"
-        type="email"
-        placeholder="your@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-
-      <Input
-        id="name"
-        label="Name on card"
-        placeholder="Full name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-      />
-
-      <div className="relative">
-        <Input
-          id="card"
-          label="Card number"
-          placeholder="1234 5678 9012 3456"
-          value={cardNumber}
-          onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-          required
-        />
-        <CreditCard className="absolute right-3 top-9 h-5 w-5 text-gray-600" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Input
-          id="expiry"
-          label="Expiry"
-          placeholder="MM/YY"
-          value={expiry}
-          onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-          required
-        />
-        <Input
-          id="cvv"
-          label="CVV"
-          type="password"
-          placeholder="123"
-          maxLength={4}
-          value={cvv}
-          onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-          required
-        />
-      </div>
-
+    <div className="space-y-4">
       {error && (
         <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
           {error}
         </div>
       )}
 
-      <Button type="submit" fullWidth size="lg" loading={loading}>
-        <Lock className="h-4 w-4" />
-        Pay {formatCurrency(amount)} with Card
+      <Button
+        type="button"
+        fullWidth
+        size="lg"
+        loading={loading}
+        onClick={handlePayWithCard}
+      >
+        <CreditCard className="h-4 w-4" />
+        Pay ${amount.toFixed(2)} with Card
       </Button>
-
-      <p className="flex items-center justify-center gap-1 text-xs text-gray-600">
-        <Lock className="h-3 w-3" />
-        Secure payment via Crossmint
-      </p>
-    </form>
+    </div>
   );
 }

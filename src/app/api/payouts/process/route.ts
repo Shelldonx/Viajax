@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const result = await processPendingPayouts();
@@ -23,6 +23,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (erro) {
     console.error("[API Payouts] Erro:", (erro as Error).message);
-    return NextResponse.json({ error: "Erro ao processar payouts" }, { status: 500 });
+    return NextResponse.json({ error: "Error processing payouts" }, { status: 500 });
   }
 }
