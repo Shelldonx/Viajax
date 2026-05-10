@@ -12,11 +12,18 @@ function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const authError = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    authError === "CredentialsSignin"
+      ? "Invalid credentials. Please check your email and try again."
+      : authError
+        ? "An error occurred. Please try again."
+        : ""
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -70,7 +70,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ products });
   } catch (erro) {
     console.error("[API Products] Error GET:", (erro as Error).message);
-    return NextResponse.json({ error: "Error loading products" }, { status: 500 });
+    // Return empty products array instead of error so marketplace page still renders
+    return NextResponse.json({ products: [], dbError: true });
   }
 }
 
