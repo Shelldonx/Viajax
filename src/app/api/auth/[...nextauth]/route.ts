@@ -3,14 +3,20 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { query, execute } from "@/lib/db";
 import { RowDataPacket } from "mysql2/promise";
+import { createHash } from "crypto";
 
 interface UserRow extends RowDataPacket {
   id: string;
   email: string;
   name: string;
   image: string;
+  password_hash: string | null;
   is_creator: boolean;
   wallet_address: string;
+}
+
+function hashPassword(password: string): string {
+  return createHash("sha256").update(password + (process.env.NEXTAUTH_SECRET || "viajax-salt")).digest("hex");
 }
 
 export const authOptions: NextAuthOptions = {
@@ -29,13 +35,17 @@ export const authOptions: NextAuthOptions = {
       name: "Email",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "you@email.com" },
-        name: { label: "Name", type: "text", placeholder: "Your name" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email) return null;
+        if (!credentials?.email || !credentials?.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
-        const name = credentials.name || email.split("@")[0];
+        const password = credentials.password;
+
+        if (password.length < 6) return null;
+
+        const hashedPassword = hashPassword(password);
 
         try {
           // Check if user exists
@@ -46,29 +56,40 @@ export const authOptions: NextAuthOptions = {
 
           if (users.length > 0) {
             const user = users[0];
+            // If user has a password, verify it
+            if (user.password_hash && user.password_hash !== hashedPassword) {
+              return null; // Wrong password
+            }
+            // If user exists but has no password (created via Google), set it now
+            if (!user.password_hash) {
+              await execute(
+                "UPDATE users SET password_hash = ? WHERE id = ?",
+                [hashedPassword, user.id]
+              );
+            }
             return {
               id: user.id,
               email: user.email,
-              name: user.name || name,
+              name: user.name || email.split("@")[0],
               image: user.image,
             };
           }
 
-          // Create new user
+          // Create new user with password
           const id = crypto.randomUUID();
+          const name = email.split("@")[0];
           await execute(
-            "INSERT INTO users (id, email, name) VALUES (?, ?, ?)",
-            [id, email, name]
+            "INSERT INTO users (id, email, name, password_hash) VALUES (?, ?, ?, ?)",
+            [id, email, name, hashedPassword]
           );
 
           return { id, email, name };
         } catch (dbError) {
           console.error("[Auth] DB Error:", (dbError as Error).message);
           // Fallback: If DB is unreachable, create a temporary session
-          // This allows the app to work while DB connection is being set up
           const fallbackId = crypto.randomUUID();
           console.warn("[Auth] Using fallback session for:", email);
-          return { id: fallbackId, email, name };
+          return { id: fallbackId, email, name: email.split("@")[0] };
         }
       },
     }),

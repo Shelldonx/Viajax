@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   email VARCHAR(255) UNIQUE NOT NULL,
   name VARCHAR(255),
+  password_hash VARCHAR(255),
   image VARCHAR(500),
   is_creator BOOLEAN DEFAULT FALSE,
   wallet_address VARCHAR(50),

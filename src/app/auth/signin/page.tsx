@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { LogIn, ArrowLeft } from "lucide-react";
+import { LogIn, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
 function SignInForm() {
@@ -15,11 +15,12 @@ function SignInForm() {
   const authError = searchParams.get("error");
 
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(
     authError === "CredentialsSignin"
-      ? "Invalid credentials. Please check your email and try again."
+      ? "Incorrect email or password."
       : authError
         ? "An error occurred. Please try again."
         : ""
@@ -27,7 +28,12 @@ function SignInForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email) return;
+    if (!email || !password) return;
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -35,12 +41,12 @@ function SignInForm() {
     try {
       const result = await signIn("credentials", {
         email,
-        name: name || email.split("@")[0],
+        password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError("Sign in failed. Please try again.");
+        setError("Incorrect email or password.");
       } else {
         router.push(callbackUrl);
       }
@@ -84,14 +90,24 @@ function SignInForm() {
               required
             />
 
-            <Input
-              id="name"
-              label="Your name"
-              type="text"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-gray-500 hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
 
             {error && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
