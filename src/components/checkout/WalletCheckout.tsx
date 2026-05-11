@@ -8,19 +8,20 @@ import { Wallet, Check, Loader2 } from "lucide-react";
 import { truncateAddress, formatUsdc } from "@/lib/utils";
 
 interface WalletCheckoutProps {
-  orderId: string;
   amountUsdc: number;
+  productId: string;
   productTitle: string;
-  onSuccess: () => void;
+  onSuccess: (orderId: string) => void;
   onBack: () => void;
 }
 
-export default function WalletCheckout({ orderId, amountUsdc, productTitle, onSuccess, onBack }: WalletCheckoutProps) {
+export default function WalletCheckout({ amountUsdc, productId, productTitle, onSuccess, onBack }: WalletCheckoutProps) {
   const { publicKey, connected } = useWallet();
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
   const [jupLoaded, setJupLoaded] = useState(false);
   const jupInitialized = useRef(false);
+  const orderIdRef = useRef<string | null>(null);
 
   // Initialize Jupiter Terminal when wallet connects and script is loaded
   useEffect(() => {
@@ -50,11 +51,27 @@ export default function WalletCheckout({ orderId, amountUsdc, productTitle, onSu
         setVerifying(true);
         setError("");
         try {
+          // First create the order in our DB
+          const createRes = await fetch("/api/checkout/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              productId,
+              buyerEmail: publicKey.toBase58(),
+              paymentMethod: "wallet",
+            }),
+          });
+          if (!createRes.ok) throw new Error("Error creating order");
+          const createData = await createRes.json();
+          const viajaxOrderId = createData.orderId;
+          orderIdRef.current = viajaxOrderId;
+
+          // Then verify the wallet payment
           const res = await fetch("/api/checkout/verify-wallet", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              orderId,
+              orderId: viajaxOrderId,
               txSignature: txid,
               walletAddress: publicKey.toBase58(),
             }),
@@ -63,7 +80,7 @@ export default function WalletCheckout({ orderId, amountUsdc, productTitle, onSu
             const data = await res.json();
             throw new Error(data.error || "Verification error");
           }
-          onSuccess();
+          onSuccess(viajaxOrderId);
         } catch (err) {
           setError((err as Error).message || "Error verifying payment");
           setVerifying(false);
@@ -74,7 +91,7 @@ export default function WalletCheckout({ orderId, amountUsdc, productTitle, onSu
         setError(`Swap error: ${swapError}`);
       },
     });
-  }, [connected, publicKey, jupLoaded, amountUsdc, orderId, onSuccess]);
+  }, [connected, publicKey, jupLoaded, amountUsdc, productId, onSuccess]);
 
   // Reset when wallet disconnects
   useEffect(() => {

@@ -6,16 +6,14 @@ import WalletCheckout from "./WalletCheckout";
 import { ChevronRight, CreditCard, Lock, ArrowLeft } from "lucide-react";
 
 interface PaymentMethodSelectorProps {
-  orderId: string;
   amount: number;
   amountUsdc: number;
   productTitle: string;
   productId: string;
-  onSuccess: () => void;
+  onSuccess: (orderId: string) => void;
 }
 
 export default function PaymentMethodSelector({
-  orderId,
   amount,
   amountUsdc,
   productTitle,
@@ -62,7 +60,6 @@ export default function PaymentMethodSelector({
 
             {/* Card checkout */}
             <CardCheckout
-              orderId={orderId}
               amount={amount}
               productTitle={productTitle}
               productId={productId}
@@ -104,8 +101,8 @@ export default function PaymentMethodSelector({
 
             {/* Wallet checkout */}
             <WalletCheckout
-              orderId={orderId}
               amountUsdc={amountUsdc}
+              productId={productId}
               productTitle={productTitle}
               onSuccess={onSuccess}
               onBack={() => setMode("card")}

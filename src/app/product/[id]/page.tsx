@@ -26,7 +26,6 @@ export default function ProductPage() {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [buying, setBuying] = useState(false);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -44,24 +43,9 @@ export default function ProductPage() {
     if (params.id) fetchProduct();
   }, [params.id]);
 
-  async function handleBuy() {
+  function handleBuy() {
     if (!product) return;
-    try {
-      setBuying(true);
-      const res = await fetch("/api/checkout/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id }),
-      });
-      if (!res.ok) throw new Error("Error creating checkout");
-      const data = await res.json();
-      router.push(`/checkout/${data.orderId}`);
-    } catch (erro) {
-      console.error("Error starting purchase:", erro);
-      alert("Error starting purchase. Please try again.");
-    } finally {
-      setBuying(false);
-    }
+    router.push(`/checkout/${product.id}`);
   }
 
   if (loading) {
@@ -120,7 +104,7 @@ export default function ProductPage() {
                 <p className="text-sm text-gray-500">Price</p>
                 <p className="text-3xl font-extrabold text-teal-400">{formatCurrency(product.price)}</p>
               </div>
-              <Button size="lg" loading={buying} onClick={handleBuy}>
+              <Button size="lg" onClick={handleBuy}>
                 <ShoppingCart className="h-5 w-5" />
                 Buy Now
               </Button>

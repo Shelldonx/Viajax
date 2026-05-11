@@ -6,44 +6,43 @@ import PaymentMethodSelector from "@/components/checkout/PaymentMethodSelector";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { ShoppingCart } from "lucide-react";
 
-interface OrderData {
+interface ProductData {
   id: string;
-  product_id: string;
-  product_title: string;
-  amount_usd: number;
-  amount_usdc: number;
-  payment_status: string;
+  title: string;
+  price: number;
+  category: string;
+  cover_image?: string;
+  creator_name?: string;
 }
 
 export default function CheckoutPage() {
   const params = useParams();
   const router = useRouter();
-  const [order, setOrder] = useState<OrderData | null>(null);
+  const [product, setProduct] = useState<ProductData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchOrder() {
+    async function fetchProduct() {
       try {
-        const res = await fetch(`/api/checkout/status/${params.orderId}`);
+        const res = await fetch(`/api/products/${params.orderId}`);
         if (!res.ok) {
-          console.error("Checkout status error:", res.status);
-          setOrder(null);
+          setProduct(null);
           return;
         }
         const data = await res.json();
-        setOrder(data.order);
+        setProduct(data.product);
       } catch (erro) {
-        console.error("Error loading checkout:", erro);
-        setOrder(null);
+        console.error("Error loading product:", erro);
+        setProduct(null);
       } finally {
         setLoading(false);
       }
     }
-    if (params.orderId) fetchOrder();
+    if (params.orderId) fetchProduct();
   }, [params.orderId]);
 
-  function handleSuccess() {
-    router.push(`/success/${params.orderId}`);
+  function handleSuccess(orderId: string) {
+    router.push(`/success/${orderId}`);
   }
 
   if (loading) {
@@ -54,12 +53,12 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!order) {
+  if (!product) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         <ShoppingCart className="h-12 w-12 text-gray-600" />
-        <h2 className="mt-4 text-xl font-semibold text-white">Order not found</h2>
-        <p className="mt-2 text-gray-500">This order may have expired or the link is incorrect.</p>
+        <h2 className="mt-4 text-xl font-semibold text-white">Product not found</h2>
+        <p className="mt-2 text-gray-500">This product may have been removed or the link is incorrect.</p>
       </div>
     );
   }
@@ -68,15 +67,14 @@ export default function CheckoutPage() {
     <div className="animate-fade-in mx-auto max-w-lg px-4 py-12 sm:px-6">
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-white">Checkout</h1>
-        <p className="mt-1 text-gray-400">Complete your payment</p>
+        <p className="mt-1 text-gray-400">{product.title}</p>
       </div>
 
       <PaymentMethodSelector
-        orderId={order.id}
-        amount={order.amount_usd}
-        amountUsdc={order.amount_usdc}
-        productTitle={order.product_title}
-        productId={order.product_id}
+        amount={product.price}
+        amountUsdc={product.price}
+        productTitle={product.title}
+        productId={product.id}
         onSuccess={handleSuccess}
       />
     </div>
