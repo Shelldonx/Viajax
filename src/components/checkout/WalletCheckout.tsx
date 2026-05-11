@@ -128,7 +128,7 @@ export default function WalletCheckout({ amountUsdc, productId, productTitle, on
       {!connected ? (
         <div className="flex flex-col items-center gap-4 py-6">
           <Wallet className="h-12 w-12 text-gray-600" />
-          <p className="text-sm text-gray-400">Connect your Phantom, Solflare, or Backpack wallet</p>
+          <p className="text-sm text-gray-400">Connect Phantom, Solflare, or Coinbase Wallet</p>
           <WalletMultiButton className="!bg-teal-500 !rounded-xl !font-semibold hover:!bg-teal-600" />
         </div>
       ) : (

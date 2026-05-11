@@ -18,6 +18,8 @@ interface PaymentOrderResponse {
 
 const CROSSMINT_API = "https://www.crossmint.com/api/2022-06-09";
 const PLATFORM_WALLET = process.env.PLATFORM_WALLET_ADDRESS || "";
+// USDC on Solana Mainnet token locator
+const USDC_TOKEN_LOCATOR = "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
 // Create a Crossmint payment order (credit card → USDC to platform wallet)
 export async function createPaymentOrder(params: CreatePaymentOrderParams): Promise<PaymentOrderResponse> {
@@ -27,51 +29,48 @@ export async function createPaymentOrder(params: CreatePaymentOrderParams): Prom
   }
 
   try {
-    const amountCents = Math.round(params.amountUsd * 100);
-
     const response = await fetch(`${CROSSMINT_API}/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-KEY": serverKey,
+        "x-api-key": serverKey,
       },
       body: JSON.stringify({
-        payment: {
-          method: "stripe-payment-element",
-          currency: "usd",
-        },
         lineItems: [
           {
-            price: String(amountCents),
-            quantity: 1,
-            metadata: {
-              viajaxOrderId: params.orderId,
-              title: params.title,
+            tokenLocator: USDC_TOKEN_LOCATOR,
+            executionParameters: {
+              mode: "exact-in",
+              amount: String(params.amountUsd),
             },
           },
         ],
+        payment: {
+          method: "card",
+          receiptEmail: params.buyerEmail,
+        },
         recipient: {
           walletAddress: PLATFORM_WALLET,
-          chain: "solana",
-          token: "usdc",
         },
         metadata: {
-          orderId: params.orderId,
+          viajaxOrderId: params.orderId,
           productId: params.productId,
-          buyerEmail: params.buyerEmail,
+          title: params.title,
         },
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
+      console.error("[Crossmint] API response:", errorData);
       throw new Error(`Crossmint API error: ${response.status} - ${errorData}`);
     }
 
     const data = await response.json();
+    console.log("[Crossmint] Order created:", data.order?.orderId || data.orderId);
     return {
       orderId: params.orderId,
-      crossmintOrderId: data.orderId || data.id,
+      crossmintOrderId: data.order?.orderId || data.orderId || data.id,
       clientSecret: data.clientSecret || "",
     };
   } catch (error) {

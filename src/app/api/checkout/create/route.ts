@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const product = products[0];
+    product.price = Number(product.price);
     const fees = calculateFees(product.price);
     const orderId = crypto.randomUUID();
     const payoutDate = calculatePayoutDate();

@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { CrossmintProvider, CrossmintEmbeddedCheckout } from "@crossmint/client-sdk-react-ui";
 import Button from "@/components/ui/Button";
 import { CreditCard, Loader2 } from "lucide-react";
+
+const CROSSMINT_CLIENT_KEY = process.env.NEXT_PUBLIC_CROSSMINT_CLIENT_KEY || "";
 
 export interface CardCheckoutProps {
   amount: number;
@@ -20,29 +23,34 @@ export default function CardCheckout({
   onSuccess,
 }: CardCheckoutProps) {
   const [loading, setLoading] = useState(false);
-  const [polling, setPolling] = useState(false);
   const [error, setError] = useState("");
-  const [currentOrderId, setCurrentOrderId] = useState("");
-  const [crossmintOrderId, setCrossmintOrderId] = useState("");
+  const [checkoutData, setCheckoutData] = useState<{
+    viajaxOrderId: string;
+    crossmintOrderId: string;
+    clientSecret: string;
+  } | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const startPolling = useCallback((viajaxOrderId: string) => {
-    setPolling(true);
-    pollingRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/checkout/status/${viajaxOrderId}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.order?.payment_status === "confirmed") {
-          if (pollingRef.current) clearInterval(pollingRef.current);
-          setPolling(false);
-          onSuccess(viajaxOrderId);
+  // Poll our API for payment confirmation once checkout is shown
+  const startPolling = useCallback(
+    (viajaxOrderId: string) => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+      pollingRef.current = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/checkout/status/${viajaxOrderId}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data.order?.payment_status === "confirmed") {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            onSuccess(viajaxOrderId);
+          }
+        } catch {
+          // Keep polling
         }
-      } catch {
-        // Keep polling
-      }
-    }, 3000);
-  }, [onSuccess]);
+      }, 4000);
+    },
+    [onSuccess]
+  );
 
   useEffect(() => {
     return () => {
@@ -50,12 +58,11 @@ export default function CardCheckout({
     };
   }, []);
 
-  async function handlePayWithCard() {
+  async function handleInitCheckout() {
     setError("");
     setLoading(true);
 
     try {
-      // Create order + Crossmint payment in one call
       const res = await fetch("/api/checkout/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,50 +75,57 @@ export default function CardCheckout({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Error creating payment");
+        throw new Error(data.error || data.crossmintError || "Error creating payment");
       }
 
       const data = await res.json();
-      const viajaxOrderId = data.orderId;
-      const cmOrderId = data.crossmintOrderId;
 
-      setCurrentOrderId(viajaxOrderId);
-      setCrossmintOrderId(cmOrderId || "");
-
-      if (cmOrderId) {
-        // Open Crossmint hosted checkout
-        const projectId = process.env.NEXT_PUBLIC_CROSSMINT_PROJECT_ID || "70a96a99-382a-47ba-a030-702cbee4613b";
-        const checkoutUrl = `https://www.crossmint.com/checkout?orderId=${cmOrderId}&projectId=${projectId}`;
-        window.open(checkoutUrl, "_blank", "noopener,noreferrer");
-        startPolling(viajaxOrderId);
-      } else {
-        // Crossmint failed — mark success immediately for now (order is recorded)
-        onSuccess(viajaxOrderId);
+      if (data.crossmintError) {
+        throw new Error(data.crossmintError);
       }
+
+      if (!data.crossmintOrderId || !data.clientSecret) {
+        throw new Error("Card payment setup failed. Please try wallet payment.");
+      }
+
+      setCheckoutData({
+        viajaxOrderId: data.orderId,
+        crossmintOrderId: data.crossmintOrderId,
+        clientSecret: data.clientSecret,
+      });
+
+      // Start polling for payment confirmation
+      startPolling(data.orderId);
     } catch (err) {
-      setError((err as Error).message || "Error processing payment. Please try again.");
+      setError((err as Error).message || "Error processing payment.");
+    } finally {
       setLoading(false);
     }
   }
 
-  if (polling) {
+  // Show embedded Crossmint checkout
+  if (checkoutData) {
     return (
-      <div className="flex flex-col items-center gap-4 py-6 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
-        <div>
-          <p className="text-sm font-medium text-white">Waiting for payment confirmation...</p>
-          <p className="mt-1 text-xs text-gray-500">
-            Complete the payment in the Crossmint window.
-          </p>
-          <p className="mt-1 text-xs text-gray-600">
-            This page will update automatically when your payment is confirmed.
-          </p>
+      <div className="space-y-4">
+        <CrossmintProvider apiKey={CROSSMINT_CLIENT_KEY}>
+          <div className="rounded-xl overflow-hidden border border-gray-800">
+            <CrossmintEmbeddedCheckout
+              orderId={checkoutData.crossmintOrderId}
+              clientSecret={checkoutData.clientSecret}
+              payment={{
+                receiptEmail: buyerEmail || undefined,
+                crypto: { enabled: false },
+                fiat: { enabled: true },
+                defaultMethod: "fiat",
+              }}
+            />
+          </div>
+        </CrossmintProvider>
+
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-600">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          <span>Waiting for payment confirmation...</span>
         </div>
-        {crossmintOrderId && (
-          <p className="text-xs text-gray-600">
-            Order: {crossmintOrderId.slice(0, 12)}...
-          </p>
-        )}
       </div>
     );
   }
@@ -129,7 +143,7 @@ export default function CardCheckout({
         fullWidth
         size="lg"
         loading={loading}
-        onClick={handlePayWithCard}
+        onClick={handleInitCheckout}
       >
         <CreditCard className="h-4 w-4" />
         Pay ${Number(amount).toFixed(2)} with Card

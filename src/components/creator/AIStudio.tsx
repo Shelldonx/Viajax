@@ -7,6 +7,7 @@ import TemplateSelector from "./TemplateSelector";
 import ThumbnailCropper from "./ThumbnailCropper";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import PriceInput from "@/components/ui/PriceInput";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { cn } from "@/lib/utils";
 import { Upload, Layout, Sparkles, Rocket, Check, RefreshCw, FileUp, Package, Image as ImageIcon } from "lucide-react";
@@ -242,7 +243,7 @@ export default function AIStudio() {
               rows={4}
             />
           </div>
-          <Input id="price" label="Price (USD)" type="number" step="0.01" min="0.99" value={price} onChange={(e) => setPrice(e.target.value)} />
+          <PriceInput id="price" value={price} onChange={setPrice} />
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-300">Category</label>
             <select
@@ -430,7 +431,7 @@ export default function AIStudio() {
 
           <div className="space-y-4">
             <Input id="title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <Input id="price" label="Price (USD)" type="number" step="0.01" min="0.99" value={price} onChange={(e) => setPrice(e.target.value)} />
+            <PriceInput id="price" value={price} onChange={setPrice} />
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-300">Category</label>
               <select
