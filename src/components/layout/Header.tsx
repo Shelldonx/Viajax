@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { Menu, X, BookOpen, LayoutDashboard, LogOut, LogIn } from "lucide-react";
 import { useState } from "react";
 import Button from "@/components/ui/Button";
@@ -48,10 +48,12 @@ export default function Header() {
               </Button>
             </div>
           ) : (
-            <Button variant="primary" size="sm" onClick={() => signIn()}>
-              <LogIn className="h-4 w-4" />
-              Sign In
-            </Button>
+            <Link href="/auth/signin">
+              <Button variant="primary" size="sm">
+                <LogIn className="h-4 w-4" />
+                Sign In
+              </Button>
+            </Link>
           )}
         </div>
 
@@ -81,9 +83,9 @@ export default function Header() {
                 Sign Out
               </button>
             ) : (
-              <button className="text-left text-sm text-teal-400 hover:text-teal-300" onClick={() => signIn()}>
+              <Link href="/auth/signin" className="text-left text-sm text-teal-400 hover:text-teal-300" onClick={() => setMenuOpen(false)}>
                 Sign In
-              </button>
+              </Link>
             )}
           </div>
         </div>

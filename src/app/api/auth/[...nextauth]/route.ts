@@ -162,7 +162,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/signin",
     error: "/auth/signin",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "4ebac54a23739aeb14b6856c6889b8b64458c6416f91d3c80633c4ee608fdf9f",
 };
 
 const handler = NextAuth(authOptions);
