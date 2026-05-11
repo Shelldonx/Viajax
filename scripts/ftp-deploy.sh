@@ -12,7 +12,13 @@ FTP_USER="u311001338.viajax.es"
 FTP_PASS="Farinha@2"
 FTP_ROOT="/home/u311001338/domains/viajax.es/public_html"
 
-echo "📁 A fazer upload para viajax.es via FTP..."
+# CRITICAL: Next.js standalone requires .next/static and public/ to be
+# copied INTO the standalone directory before uploading.
+echo "� Preparing standalone bundle..."
+cp -r .next/static .next/standalone/.next/static
+cp -r public .next/standalone/public
+
+echo "�📁 A fazer upload para viajax.es via FTP..."
 
 lftp -u "$FTP_USER","$FTP_PASS" ftp://"$FTP_HOST":"$FTP_PORT" <<EOF
 set ssl:verify-certificate no
@@ -27,8 +33,6 @@ mirror -R --delete \
   --exclude "*.log" \
   --exclude "*.sql.bak" \
   .next/standalone/ $FTP_ROOT
-put public/.htaccess -o $FTP_ROOT/.htaccess
-mirror -R --delete public/ $FTP_ROOT/public/
 bye
 EOF
 

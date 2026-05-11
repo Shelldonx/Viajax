@@ -16,6 +16,11 @@ bash scripts/migrate.sh 2>&1 | tee -a "$LOG_FILE"
 echo "🔨 A fazer build..." | tee -a "$LOG_FILE"
 npm run build 2>&1 | tee -a "$LOG_FILE"
 
+# 3.5 Copy static assets into standalone (REQUIRED for CSS/JS to work)
+echo "📦 Copying static assets into standalone..." | tee -a "$LOG_FILE"
+cp -r .next/static .next/standalone/.next/static
+cp -r public .next/standalone/public
+
 # 4. Upload FTP
 bash scripts/ftp-deploy.sh 2>&1 | tee -a "$LOG_FILE"
 
