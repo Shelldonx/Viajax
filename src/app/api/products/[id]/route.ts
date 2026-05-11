@@ -50,12 +50,19 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, description, price, category, published } = body;
+    const { title, description, price, category, published, coverImage } = body;
 
-    await execute(
-      `UPDATE products SET title = ?, description = ?, price = ?, category = ?, published = ? WHERE id = ?`,
-      [title, description, price, category, published ? 1 : 0, id]
-    );
+    if (coverImage !== undefined) {
+      await execute(
+        `UPDATE products SET title = ?, description = ?, price = ?, category = ?, published = ?, cover_image = ? WHERE id = ?`,
+        [title, description, price, category, published ? 1 : 0, coverImage, id]
+      );
+    } else {
+      await execute(
+        `UPDATE products SET title = ?, description = ?, price = ?, category = ?, published = ? WHERE id = ?`,
+        [title, description, price, category, published ? 1 : 0, id]
+      );
+    }
 
     return NextResponse.json({ message: "Product updated" });
   } catch (erro) {

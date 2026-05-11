@@ -14,6 +14,7 @@ interface Product {
   title: string;
   price: number;
   category: string;
+  cover_image?: string;
   published: boolean;
   sales_count: number;
   created_at: string;
@@ -85,8 +86,12 @@ export default function ProductsPage() {
             <Card key={product.id}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-800">
-                    <BookOpen className="h-6 w-6 text-gray-500" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-800 overflow-hidden">
+                    {product.cover_image ? (
+                      <img src={product.cover_image} alt={product.title} className="h-full w-full object-cover" />
+                    ) : (
+                      <BookOpen className="h-6 w-6 text-gray-500" />
+                    )}
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-white">{product.title}</h3>
@@ -120,7 +125,7 @@ export default function ProductsPage() {
                   <Link href={`/product/${product.id}`}>
                     <Button variant="ghost" size="sm"><Eye className="h-4 w-4" /></Button>
                   </Link>
-                  <Link href={`/dashboard/studio/${product.id}`}>
+                  <Link href={`/dashboard/products/${product.id}/edit`}>
                     <Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button>
                   </Link>
                 </div>
