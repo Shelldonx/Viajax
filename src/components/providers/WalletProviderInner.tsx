@@ -12,7 +12,7 @@ interface WalletProviderInnerProps {
 }
 
 export default function WalletProviderInner({ children }: WalletProviderInnerProps) {
-  const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
+  const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC || "https://solana-mainnet.g.alchemy.com/v2/demo";
 
   const wallets = useMemo(
     () => [new PhantomWalletAdapter(), new SolflareWalletAdapter(), new CoinbaseWalletAdapter()],

@@ -35,10 +35,13 @@ export default function WalletCheckout({ amountUsdc, productId, productTitle, on
     const amountMicro = String(Math.floor(amountUsdc * 1_000_000));
     const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
+    // Use Helius RPC if available, otherwise fallback to a browser-friendly public RPC
+    const rpcEndpoint = process.env.NEXT_PUBLIC_SOLANA_RPC || "https://solana-mainnet.g.alchemy.com/v2/demo";
+
     jupWindow.Jupiter.init({
       displayMode: "integrated",
       integratedTargetId: "jupiter-terminal-container",
-      endpoint: process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com",
+      endpoint: rpcEndpoint,
       strictTokenList: false,
       defaultExplorer: "Solscan",
       formProps: {
