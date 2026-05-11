@@ -25,8 +25,21 @@ const USDC_TOKEN_LOCATOR = "solana:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 export async function createPaymentOrder(params: CreatePaymentOrderParams): Promise<PaymentOrderResponse> {
   const serverKey = process.env.CROSSMINT_SERVER_KEY;
   if (!serverKey) {
+    console.error("[Crossmint] CROSSMINT_SERVER_KEY not configured");
     throw new Error("CROSSMINT_SERVER_KEY not configured");
   }
+
+  if (!PLATFORM_WALLET) {
+    console.error("[Crossmint] PLATFORM_WALLET_ADDRESS not configured");
+    throw new Error("PLATFORM_WALLET_ADDRESS not configured");
+  }
+
+  console.log("[Crossmint] Creating order:", {
+    productId: params.productId,
+    amountUsd: params.amountUsd,
+    buyerEmail: params.buyerEmail,
+    platformWallet: PLATFORM_WALLET,
+  });
 
   try {
     const response = await fetch(`${CROSSMINT_API}/orders`, {
@@ -62,12 +75,21 @@ export async function createPaymentOrder(params: CreatePaymentOrderParams): Prom
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error("[Crossmint] API response:", errorData);
+      console.error("[Crossmint] API error:", {
+        status: response.status,
+        response: errorData,
+      });
       throw new Error(`Crossmint API error: ${response.status} - ${errorData}`);
     }
 
     const data = await response.json();
     console.log("[Crossmint] Order created:", data.order?.orderId || data.orderId);
+
+    if (!data.clientSecret) {
+      console.error("[Crossmint] No clientSecret in response:", data);
+      throw new Error("Crossmint did not return clientSecret");
+    }
+
     return {
       orderId: params.orderId,
       crossmintOrderId: data.order?.orderId || data.orderId || data.id,
