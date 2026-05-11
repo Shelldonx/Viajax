@@ -8,9 +8,9 @@ fi
 
 FTP_HOST="109.106.245.63"
 FTP_PORT="21"
-FTP_USER="u311001338.viajax.es"
+FTP_USER="u311001338.shelldonviajax"
 FTP_PASS="Farinha@2"
-FTP_ROOT="/home/u311001338/domains/viajax.es/public_html"
+FTP_ROOT="/home/u311001338/domains/viajax.es/nodejs"
 
 # CRITICAL: Next.js standalone requires .next/static and public/ to be
 # copied INTO the standalone directory before uploading.
@@ -30,8 +30,8 @@ mirror -R --delete \
   --exclude .env \
   --exclude logs/ \
   --exclude backups/ \
-  --exclude "*.log" \
-  --exclude "*.sql.bak" \
+  -x '\.log$' \
+  -x '\.sql\.bak$' \
   .next/standalone/ $FTP_ROOT
 bye
 EOF
