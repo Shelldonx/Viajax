@@ -33,7 +33,7 @@ export default function PaymentMethodSelector({
             <p className="text-sm text-gray-400">{productTitle}</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-teal-400">${amount.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-teal-400">${Number(amount).toFixed(2)}</p>
             <p className="text-xs text-gray-500">USDC</p>
           </div>
         </div>

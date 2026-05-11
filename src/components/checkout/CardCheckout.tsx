@@ -132,7 +132,7 @@ export default function CardCheckout({
         onClick={handlePayWithCard}
       >
         <CreditCard className="h-4 w-4" />
-        Pay ${amount.toFixed(2)} with Card
+        Pay ${Number(amount).toFixed(2)} with Card
       </Button>
     </div>
   );

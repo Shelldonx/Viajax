@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
          ORDER BY p.created_at DESC`,
         [userId]
       );
+      products.forEach((p) => { p.price = Number(p.price); p.sales_count = Number(p.sales_count || 0); });
       return NextResponse.json({ products });
     }
 
@@ -66,6 +67,7 @@ export async function GET(request: NextRequest) {
     sql += " ORDER BY p.created_at DESC";
 
     const products = await query<ProductRow[]>(sql, params);
+    products.forEach((p) => { p.price = Number(p.price); p.sales_count = Number(p.sales_count || 0); });
 
     return NextResponse.json({ products });
   } catch (erro) {

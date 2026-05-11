@@ -66,7 +66,7 @@ export default function SuccessPage() {
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Amount</span>
-            <span className="font-medium text-white">${data?.amount_usd?.toFixed(2)} USDC</span>
+            <span className="font-medium text-white">${Number(data?.amount_usd || 0).toFixed(2)} USDC</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Payment method</span>

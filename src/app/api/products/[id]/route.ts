@@ -35,7 +35,11 @@ export async function GET(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ product: products[0] });
+    const product = products[0];
+    product.price = Number(product.price);
+    product.sales_count = Number(product.sales_count || 0);
+
+    return NextResponse.json({ product });
   } catch (erro) {
     console.error("[API Product] Erro GET:", (erro as Error).message);
     return NextResponse.json({ error: "Error loading product" }, { status: 500 });

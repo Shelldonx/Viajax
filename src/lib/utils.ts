@@ -15,12 +15,12 @@ export function formatUsdc(amount: number): string {
 }
 
 // Formatar valor em EUR/USD
-export function formatCurrency(amount: number, currency = "EUR"): string {
+export function formatCurrency(amount: number | string, currency = "EUR"): string {
   return new Intl.NumberFormat("pt-PT", {
     style: "currency",
     currency,
     minimumFractionDigits: 2,
-  }).format(amount);
+  }).format(Number(amount) || 0);
 }
 
 // Calcular taxas da plataforma (3%)
