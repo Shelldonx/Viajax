@@ -24,7 +24,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     async function fetchProduct() {
       try {
-        const res = await fetch(`/api/products/${params.orderId}`);
+        const res = await fetch(`/api/products/${params.productId}`);
         if (!res.ok) {
           setProduct(null);
           return;
@@ -38,8 +38,8 @@ export default function CheckoutPage() {
         setLoading(false);
       }
     }
-    if (params.orderId) fetchProduct();
-  }, [params.orderId]);
+    if (params.productId) fetchProduct();
+  }, [params.productId]);
 
   function handleSuccess(orderId: string) {
     router.push(`/success/${orderId}`);
