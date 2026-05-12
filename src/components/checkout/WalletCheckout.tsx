@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import Script from "next/script";
-import { Wallet, Check, Loader2, RefreshCw, AlertCircle } from "lucide-react";
+import { Wallet, Check, Loader2, Copy, ExternalLink } from "lucide-react";
 import { truncateAddress, formatUsdc } from "@/lib/utils";
 
 interface WalletCheckoutProps {
@@ -15,115 +14,69 @@ interface WalletCheckoutProps {
   onBack: () => void;
 }
 
+const PLATFORM_WALLET = process.env.NEXT_PUBLIC_PLATFORM_WALLET || "FMfitdfABAD4Vgbw7G81TKyf5xX8VjSLEGEZ6Ei52Qwm";
+const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+
 export default function WalletCheckout({ amountUsdc, productId, productTitle, onSuccess, onBack }: WalletCheckoutProps) {
   const { publicKey, connected } = useWallet();
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
-  const [jupLoaded, setJupLoaded] = useState(false);
-  const [jupInitializing, setJupInitializing] = useState(false);
-  const [jupInitFailed, setJupInitFailed] = useState(false);
-  const jupInitialized = useRef(false);
-  const orderIdRef = useRef<string | null>(null);
+  const [txSignature, setTxSignature] = useState("");
+  const [copied, setCopied] = useState(false);
 
-  // Initialize Jupiter Terminal when wallet connects and script is loaded
-  useEffect(() => {
-    if (!connected || !publicKey || !jupLoaded || jupInitialized.current) return;
-
-    const jupWindow = window as unknown as { Jupiter?: { init: (cfg: Record<string, unknown>) => void } };
-    if (!jupWindow.Jupiter) {
-      console.error("[Jupiter] Jupiter not available on window");
-      setJupInitFailed(true);
+  async function handleVerifyPayment() {
+    if (!txSignature) {
+      setError("Please enter the transaction signature");
       return;
     }
 
-    setJupInitializing(true);
-    setJupInitFailed(false);
-    jupInitialized.current = true;
-
-    const amountMicro = String(Math.floor(amountUsdc * 1_000_000));
-    const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
-
-    // Use Helius RPC if available, otherwise fallback to a browser-friendly public RPC
-    const rpcEndpoint = process.env.NEXT_PUBLIC_SOLANA_RPC || "https://solana-mainnet.g.alchemy.com/v2/demo";
-
-    console.log("[Jupiter] Initializing with RPC:", rpcEndpoint);
+    setVerifying(true);
+    setError("");
 
     try {
-      jupWindow.Jupiter.init({
-        displayMode: "integrated",
-        integratedTargetId: "jupiter-terminal-container",
-        endpoint: rpcEndpoint,
-        strictTokenList: false,
-        defaultExplorer: "Solscan",
-        formProps: {
-          initialOutputMint: USDC_MINT,
-          fixedOutputMint: true,
-          initialAmount: amountMicro,
-        },
-        onSuccess: async ({ txid }: { txid: string }) => {
-          console.log(`[Jupiter] Swap success: ${txid}`);
-          setVerifying(true);
-          setError("");
-          try {
-            // First create the order in our DB
-            const createRes = await fetch("/api/checkout/create", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                productId,
-                buyerEmail: publicKey.toBase58(),
-                paymentMethod: "wallet",
-              }),
-            });
-            if (!createRes.ok) throw new Error("Error creating order");
-            const createData = await createRes.json();
-            const viajaxOrderId = createData.orderId;
-            orderIdRef.current = viajaxOrderId;
-
-            // Then verify the wallet payment
-            const res = await fetch("/api/checkout/verify-wallet", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                orderId: viajaxOrderId,
-                txSignature: txid,
-                walletAddress: publicKey.toBase58(),
-              }),
-            });
-            if (!res.ok) {
-              const data = await res.json();
-              throw new Error(data.error || "Verification error");
-            }
-            onSuccess(viajaxOrderId);
-          } catch (err) {
-            setError((err as Error).message || "Error verifying payment");
-            setVerifying(false);
-          }
-        },
-        onSwapError: ({ error: swapError }: { error: string }) => {
-          console.error(`[Jupiter] Swap error: ${swapError}`);
-          setError(`Swap error: ${swapError}`);
-        },
+      // Create order first
+      const createRes = await fetch("/api/checkout/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId,
+          buyerEmail: publicKey?.toBase58() || "",
+          paymentMethod: "wallet",
+        }),
       });
 
-      // Set initializing to false after a short delay
-      setTimeout(() => setJupInitializing(false), 2000);
-    } catch (err) {
-      console.error("[Jupiter] Init error:", err);
-      setJupInitFailed(true);
-      setJupInitializing(false);
-      setError("Failed to load Jupiter Terminal. Please refresh and try again.");
-    }
-  }, [connected, publicKey, jupLoaded, amountUsdc, productId, onSuccess]);
+      if (!createRes.ok) throw new Error("Error creating order");
+      const createData = await createRes.json();
+      const viajaxOrderId = createData.orderId;
 
-  // Reset when wallet disconnects
-  useEffect(() => {
-    if (!connected) {
-      jupInitialized.current = false;
-      setJupInitFailed(false);
-      setJupInitializing(false);
+      // Verify the transaction
+      const res = await fetch("/api/checkout/verify-wallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: viajaxOrderId,
+          txSignature: txSignature.trim(),
+          walletAddress: publicKey?.toBase58() || "",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Verification failed");
+      }
+
+      onSuccess(viajaxOrderId);
+    } catch (err) {
+      setError((err as Error).message || "Error verifying payment");
+      setVerifying(false);
     }
-  }, [connected]);
+  }
+
+  function copyAddress() {
+    navigator.clipboard.writeText(PLATFORM_WALLET);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   if (verifying) {
     return (
@@ -137,31 +90,17 @@ export default function WalletCheckout({ amountUsdc, productId, productTitle, on
 
   return (
     <div className="space-y-4">
-      <Script
-        src="https://terminal.jup.ag/main-v3.js"
-        onLoad={() => {
-          console.log("[Jupiter] Script loaded");
-          setJupLoaded(true);
-        }}
-        onError={() => {
-          console.error("[Jupiter] Script failed to load");
-          setJupInitFailed(true);
-          setError("Failed to load Jupiter. Please check your internet connection.");
-        }}
-        strategy="lazyOnload"
-      />
-
       <div className="mb-2">
         <h3 className="text-lg font-semibold text-white">Pay with Solana Wallet</h3>
         <p className="mt-1 text-sm text-gray-400">
-          Pay with SOL, USDC, or any token — Jupiter converts automatically to USDC.
+          Send USDC directly — no swap needed if you already have USDC.
         </p>
       </div>
 
       {!connected ? (
         <div className="flex flex-col items-center gap-4 py-6">
           <Wallet className="h-12 w-12 text-gray-600" />
-          <p className="text-sm text-gray-400">Connect Phantom, Solflare, or Coinbase Wallet</p>
+          <p className="text-sm text-gray-400">Connect Phantom or Solflare Wallet</p>
           <WalletMultiButton className="!bg-teal-500 !rounded-xl !font-semibold hover:!bg-teal-600" />
         </div>
       ) : (
@@ -174,11 +113,68 @@ export default function WalletCheckout({ amountUsdc, productId, productTitle, on
             </span>
           </div>
 
-          {/* Amount display */}
-          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
-            <p className="text-sm text-gray-500">Total to pay</p>
-            <p className="text-2xl font-bold text-teal-400">{formatUsdc(amountUsdc)} USDC</p>
-            <p className="mt-1 text-xs text-gray-600">Jupiter will swap your tokens to USDC automatically</p>
+          {/* Payment instructions */}
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-4 space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-500">Send exactly</p>
+              <p className="text-3xl font-bold text-teal-400 mt-1">{formatUsdc(amountUsdc)} USDC</p>
+              <p className="text-xs text-gray-600 mt-1">to the address below</p>
+            </div>
+
+            {/* Wallet address */}
+            <div className="rounded-lg bg-gray-950 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-xs text-gray-300 break-all flex-1">{PLATFORM_WALLET}</code>
+                <button
+                  onClick={copyAddress}
+                  className="p-2 text-gray-500 hover:text-white transition-colors"
+                  title="Copy address"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+              </div>
+              {copied && <p className="text-xs text-green-400 mt-2">Address copied!</p>}
+            </div>
+
+            {/* USDC Mint info */}
+            <div className="rounded-lg bg-gray-950 p-3">
+              <p className="text-xs text-gray-500 mb-1">Make sure you send USDC on Solana Mainnet:</p>
+              <div className="flex items-center justify-between gap-2">
+                <code className="text-xs text-gray-300 break-all flex-1">{USDC_MINT}</code>
+                <a
+                  href={`https://solscan.io/token/${USDC_MINT}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-gray-500 hover:text-white transition-colors"
+                  title="View on Solscan"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+
+            {/* Steps */}
+            <ol className="text-xs text-gray-400 space-y-2 list-decimal list-inside">
+              <li>Open your wallet (Phantom/Solflare)</li>
+              <li>Send <span className="text-teal-400">{formatUsdc(amountUsdc)} USDC</span> to the address above</li>
+              <li>Make sure it's on Solana Mainnet</li>
+              <li>Copy the transaction signature after sending</li>
+              <li>Paste it below and click Verify</li>
+            </ol>
+          </div>
+
+          {/* Transaction signature input */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-300">
+              Transaction Signature
+            </label>
+            <input
+              type="text"
+              value={txSignature}
+              onChange={(e) => setTxSignature(e.target.value)}
+              placeholder="Paste your transaction signature here..."
+              className="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500/50"
+            />
           </div>
 
           {error && (
@@ -187,43 +183,13 @@ export default function WalletCheckout({ amountUsdc, productId, productTitle, on
             </div>
           )}
 
-          {/* Loading state */}
-          {jupInitializing && (
-            <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
-              <p className="text-sm text-gray-400">Loading Jupiter Terminal...</p>
-              <p className="text-xs text-gray-600">Preparing swap interface for USDC payment</p>
-            </div>
-          )}
-
-          {/* Jupiter failed to load */}
-          {jupInitFailed && (
-            <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-6 text-center">
-              <AlertCircle className="h-8 w-8 text-yellow-400 mx-auto mb-3" />
-              <p className="text-sm font-medium text-white mb-2">Jupiter Terminal failed to load</p>
-              <p className="text-xs text-gray-400 mb-4">This might be due to RPC connection issues. Please try:</p>
-              <ul className="text-xs text-gray-400 text-left space-y-1 mb-4">
-                <li>• Refresh the page</li>
-                <li>• Check your internet connection</li>
-                <li>• Try using a different browser</li>
-              </ul>
-              <button
-                onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-4 py-2 text-sm font-medium text-white hover:bg-teal-600"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Refresh Page
-              </button>
-            </div>
-          )}
-
-          {/* Jupiter Terminal Container */}
-          {!jupInitializing && !jupInitFailed && (
-            <div
-              id="jupiter-terminal-container"
-              className="min-h-[450px] rounded-xl border border-gray-800 bg-gray-950 overflow-hidden"
-            />
-          )}
+          <button
+            onClick={handleVerifyPayment}
+            disabled={!txSignature || verifying}
+            className="w-full rounded-xl bg-teal-500 px-4 py-3 text-sm font-medium text-white hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {verifying ? "Verifying..." : "Verify Payment"}
+          </button>
         </div>
       )}
     </div>
